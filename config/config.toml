@@ -1,0 +1,6 @@
+Host = "localhost"
+user = "root"
+password = "Zss"
+port = 3306
+database = "db_miniDy"
+
