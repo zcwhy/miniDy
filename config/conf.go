@@ -17,7 +17,7 @@ type Mysql struct {
 var dbConf Mysql
 
 func init() {
-	if _, err := toml.DecodeFile("D:/Go/goCode/src/miniDy/config/config.toml", &dbConf); err != nil {
+	if _, err := toml.DecodeFile("D:/mydy/miniDy/config/config.toml", &dbConf); err != nil {
 		panic(err)
 	}
 }
