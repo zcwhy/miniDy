@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type Video struct {
 	Id            int64       `json:"id,omitempty"`
@@ -16,4 +19,32 @@ type Video struct {
 	Comments      []*Comment  `json:"-"`
 	CreatedAt     time.Time   `json:"-"`
 	UpdatedAt     time.Time   `json:"-"`
+}
+
+type VideoDAO struct {
+}
+
+var (
+	VideoDao     *VideoDAO
+	VideoDaoOnce sync.Once
+)
+
+func NewVideoDao() *VideoDAO {
+	VideoDaoOnce.Do(func() {
+		VideoDao = new(VideoDAO)
+	})
+	return VideoDao
+}
+
+func (*VideoDAO) CountUserVideoById(userId int64) (int64, error) {
+	result := DB.Model(&Video{}).Where("user_info_id=?", userId)
+	return result.RowsAffected, result.Error
+}
+
+func (*VideoDAO) CreateVideo(userId int64, playUrl string, title string) error {
+	return DB.Create(&Video{
+		UserInfoId: userId,
+		PlayUrl:    playUrl,
+		Title:      title,
+	}).Error
 }
