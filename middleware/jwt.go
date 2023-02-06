@@ -41,7 +41,7 @@ func ParseToken(tokenString string) (*Claims, bool) {
 	})
 
 	if token != nil {
-		//
+		//类型断言
 		if claims, ok := token.Claims.(*Claims); ok {
 			if token.Valid {
 				return claims, true

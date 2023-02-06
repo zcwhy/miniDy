@@ -10,14 +10,14 @@ import (
 
 type UserRegisterResponse struct {
 	response.CommonResp
-	*user_login.LoginResponse
+	*user_login.UserRegisterResponse
 }
 
 func UserRegisterHandler(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	registerResponse, err := user_login.PostUserLogin(username, password)
+	registerResponse, err := user_login.PostUserRegister(username, password)
 
 	if err != nil {
 		c.JSON(http.StatusOK, UserRegisterResponse{
@@ -34,6 +34,6 @@ func UserRegisterHandler(c *gin.Context) {
 			StatusCode: constant.SUCCESS,
 			StatusMsg:  constant.SUCCESS_MESSAGE,
 		},
-		LoginResponse: registerResponse,
+		UserRegisterResponse: registerResponse,
 	})
 }
