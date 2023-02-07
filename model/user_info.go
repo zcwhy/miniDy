@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"gorm.io/gorm"
 	"log"
 	"sync"
 )
@@ -44,8 +45,7 @@ func (s *UserInfoDAO) UserRegister(info *UserInfo) error {
 	return DB.Create(info).Error
 }
 
-// GET用户信息接口数据库查询(xqy)
-func (u *UserInfoDAO) QueryUserInfoById(userId int64, userInfo *UserInfo) error {
+func (s *UserInfoDAO) QueryUserInfoById(userId int64, userInfo *UserInfo) error {
 	if userInfo == nil {
 		return ErrIvdPtr
 	}
@@ -56,7 +56,7 @@ func (u *UserInfoDAO) QueryUserInfoById(userId int64, userInfo *UserInfo) error 
 	return nil
 }
 
-func (u *UserInfoDAO) IsUserExistById(userId int64) bool {
+func (s *UserInfoDAO) IsUserExistById(userId int64) bool {
 	var userinfo UserInfo
 	if err := DB.Where("id=?", userId).Select("id").First(&userinfo).Error; err != nil {
 		log.Println(err)
@@ -65,4 +65,44 @@ func (u *UserInfoDAO) IsUserExistById(userId int64) bool {
 		return false
 	}
 	return true
+}
+
+func (s *UserInfoDAO) AddUserFollow(userId int64, followId int64) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("UPDATE user_infos SET follow_count=follow_count+1 WHERE id = ?", userId).Error; err != nil {
+			return err
+		}
+		if err := tx.Exec("UPDATE user_infos SET follower_count=follower_count+1 WHERE id = ?", followId).Error; err != nil {
+			return err
+		}
+		if err := tx.Exec("INSERT INTO user_relations (`user_info_id`,`follow_id`) VALUES (?,?)", userId, followId).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (s *UserInfoDAO) CancelUserFollow(userId int64, followId int64) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("UPDATE user_infos SET follow_count=follow_count-1 WHERE id = ? AND follow_count>0", userId).Error; err != nil {
+			return err
+		}
+		if err := tx.Exec("UPDATE user_infos SET follower_count=follower_count-1 WHERE id = ? AND follower_count>0", followId).Error; err != nil {
+			return err
+		}
+		if err := tx.Exec("DELETE FROM user_relations WHERE user_info_id=? AND follow_id=?", userId, followId).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (s *UserInfoDAO) IsFollowExist(userId int64, followId int64) bool {
+	var userinfo UserInfo
+	exist := DB.Raw("SELECT r.* from user_relations r WHERE r.user_info_id = ? AND r.follow_id = ?", userId, followId).Scan(userinfo).RowsAffected
+	//log.Printf("########**%#v", exist)
+	if exist == 1 {
+		return true
+	}
+	return false
 }

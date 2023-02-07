@@ -21,7 +21,7 @@ func InitRouter() *gin.Engine {
 	//basic apis
 	baseGroup.GET("/feed")
 	baseGroup.GET("/user", middleware.JWTMiddleWare, user_info.UserInfoHandler)           // 用户信息接口完成(xqy)
-	baseGroup.GET("/publish/list", middleware.JWTMiddleWare, video.QueryVideoListHandler) // 发布列表(xqy)
+	baseGroup.GET("/publish/list", middleware.JWTMiddleWare, video.QueryVideoListHandler) // 发布列表接口完成(xqy)
 	baseGroup.POST("/user/login")
 	baseGroup.POST("/user/register", user_login.UserRegisterHandler)
 	baseGroup.POST("/publish/action", middleware.JWTMiddleWare)
@@ -33,7 +33,7 @@ func InitRouter() *gin.Engine {
 	baseGroup.GET("/comment/list", middleware.JWTMiddleWare)
 
 	//social apis
-	baseGroup.POST("/relation/action", middleware.JWTMiddleWare)
+	baseGroup.POST("/relation/action", middleware.JWTMiddleWare, user_info.PostFollowHander) // 关注操作接口完成(xqy)
 	baseGroup.GET("/relation/follow/list", middleware.CheckIdMiddleWare)
 	baseGroup.GET("/favorite/follower/list", middleware.CheckIdMiddleWare)
 	baseGroup.GET("/favorite/friend/list", middleware.CheckIdMiddleWare)
