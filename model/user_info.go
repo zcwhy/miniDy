@@ -1,6 +1,10 @@
 package model
 
-import "sync"
+import (
+	"errors"
+	"log"
+	"sync"
+)
 
 type UserInfo struct {
 	Id            int64       `json:"id" gorm:"id,omitempty"`
@@ -23,6 +27,11 @@ var (
 	UserInfoOnce sync.Once
 )
 
+var (
+	ErrIvdPtr        = errors.New("空指针错误")
+	ErrEmptyUserList = errors.New("用户列表为空")
+)
+
 func NewUserInfoDao() *UserInfoDAO {
 	UserInfoOnce.Do(func() {
 		UserInfoDao = new(UserInfoDAO)
@@ -33,4 +42,27 @@ func NewUserInfoDao() *UserInfoDAO {
 
 func (s *UserInfoDAO) UserRegister(info *UserInfo) error {
 	return DB.Create(info).Error
+}
+
+// GET用户信息接口数据库查询(xqy)
+func (u *UserInfoDAO) QueryUserInfoById(userId int64, userInfo *UserInfo) error {
+	if userInfo == nil {
+		return ErrIvdPtr
+	}
+	DB.Where("id=?", userId).Select([]string{"id", "name", "follow_count", "follower_count", "is_follow"}).First(userInfo)
+	if userInfo.Id == 0 {
+		return errors.New("用户不存在")
+	}
+	return nil
+}
+
+func (u *UserInfoDAO) IsUserExistById(userId int64) bool {
+	var userinfo UserInfo
+	if err := DB.Where("id=?", userId).Select("id").First(&userinfo).Error; err != nil {
+		log.Println(err)
+	}
+	if userinfo.Id == 0 {
+		return false
+	}
+	return true
 }

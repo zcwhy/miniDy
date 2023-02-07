@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"errors"
+	"sync"
+	"time"
+)
 
 type Video struct {
 	Id            int64       `json:"id,omitempty"`
@@ -16,4 +20,37 @@ type Video struct {
 	Comments      []*Comment  `json:"-"`
 	CreatedAt     time.Time   `json:"-"`
 	UpdatedAt     time.Time   `json:"-"`
+}
+
+type VideoDAO struct {
+}
+
+var (
+	videoDAO  *VideoDAO
+	videoOnce sync.Once
+)
+
+func NewVideoDao() *VideoDAO {
+	videoOnce.Do(func() { // 保证DAO只执行一次，并且返回*********
+		videoDAO = new(VideoDAO)
+	})
+	return videoDAO
+}
+
+func (v *VideoDAO) QueryVideoListByUserId(userId int64, videoList *[]*Video) error {
+	if videoList == nil {
+		return errors.New("QueryVideoListByUserId videoList 空指针")
+	}
+	return DB.Where("user_info_id=?", userId).
+		Select([]string{"id", "user_info_id", "play_url", "cover_url", "favorite_count", "comment_count", "is_favorite", "title"}).
+		Find(videoList).Error
+}
+
+func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
+	userFavorVedio := &Video{}
+	exist := DB.Raw("SELECT f.* from user_favor_videos f WHERE f.user_info_id = ? AND f.video_id = ?", userId, videoId).Scan(userFavorVedio).RowsAffected
+	if exist == 1 {
+		return true
+	}
+	return false
 }

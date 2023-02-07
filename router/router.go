@@ -2,7 +2,9 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"miniDy/handlers/user_info"
 	"miniDy/handlers/user_login"
+	"miniDy/handlers/video"
 	"miniDy/middleware"
 	"miniDy/model"
 )
@@ -18,8 +20,8 @@ func InitRouter() *gin.Engine {
 
 	//basic apis
 	baseGroup.GET("/feed")
-	baseGroup.GET("/user", middleware.JWTMiddleWare)
-	baseGroup.GET("/publish/list", middleware.CheckIdMiddleWare)
+	baseGroup.GET("/user", middleware.JWTMiddleWare, user_info.UserInfoHandler)           // 用户信息接口完成(xqy)
+	baseGroup.GET("/publish/list", middleware.JWTMiddleWare, video.QueryVideoListHandler) // 发布列表(xqy)
 	baseGroup.POST("/user/login")
 	baseGroup.POST("/user/register", user_login.UserRegisterHandler)
 	baseGroup.POST("/publish/action", middleware.JWTMiddleWare)
