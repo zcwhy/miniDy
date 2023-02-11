@@ -21,7 +21,7 @@ func NewQueryVideoListByUserIdFlow(userId int64) *QueryVideoListByUserIdFlow {
 }
 
 func (q *QueryVideoListByUserIdFlow) checkNum() error {
-	if !model.NewUserInfoDao().IsUserExistById(q.userId) { // 调用下层的models层查询数据库中是否存在********
+	if !model.NewUserInfoDao().IsUserExistById(q.userId) { // 调用下层的models层查询数据库中是否存在
 		return errors.New("用户不存在")
 	}
 	return nil
@@ -34,14 +34,14 @@ func (q *QueryVideoListByUserIdFlow) packDate() error {
 	}
 	//作者信息查询
 	var userInfo model.UserInfo
-	err = model.NewUserInfoDao().QueryUserInfoById(q.userId, &userInfo) // 调用下层的models层根据userid查询用户信息********
+	err = model.NewUserInfoDao().QueryUserInfoById(q.userId, &userInfo) // 调用下层的models层根据userid查询用户信息
 	if err != nil {
 		return err
 	}
 	//填充信息(Author和IsFavorite字段)
 	for i := range q.videos {
 		q.videos[i].Author = userInfo
-		q.videos[i].IsFavorite = model.NewVideoDao().IsUserFavorVideoExist(q.userId, q.videos[i].Id) // 根据userId和videoId进行查询********
+		q.videos[i].IsFavorite = model.NewVideoDao().IsUserFavorVideoExist(q.userId, q.videos[i].Id) // 根据userId和videoId进行查询
 	}
 
 	q.videoList = &List{Video: q.videos}

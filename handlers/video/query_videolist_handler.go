@@ -9,12 +9,12 @@ import (
 	"net/http"
 )
 
-// 代理结构体
+// ProxyQueryVideoList 代理结构体
 type ProxyQueryVideoList struct {
 	c *gin.Context
 }
 
-// 创建代理结构体
+// NewProxyQueryVideoList 创建代理结构体
 func NewProxyQueryVideoList(c *gin.Context) *ProxyQueryVideoList {
 	return &ProxyQueryVideoList{c: c}
 }
@@ -24,7 +24,7 @@ type ListResponse struct {
 	*video.List
 }
 
-// 前端返回Ok
+// QueryVideoListOk 前端返回Ok
 func (p *ProxyQueryVideoList) QueryVideoListOk(videoList *video.List) {
 	p.c.JSON(http.StatusOK, ListResponse{
 		CommonResp: response.CommonResp{
@@ -35,7 +35,7 @@ func (p *ProxyQueryVideoList) QueryVideoListOk(videoList *video.List) {
 	})
 }
 
-// 给前端返回Error
+// QueryVideoListError 给前端返回Error
 func (p *ProxyQueryVideoList) QueryVideoListError(msg string) {
 	p.c.JSON(http.StatusOK, ListResponse{
 		CommonResp: response.CommonResp{

@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-// 代理结构体
+// ProxyPostFollow 代理结构体
 type ProxyPostFollow struct {
 	c *gin.Context
 	// 解析c的参数存入结构体以便使用
@@ -19,12 +19,12 @@ type ProxyPostFollow struct {
 	actionType int
 }
 
-// 新建代理实例
+// NewProxyPostFollow 新建代理实例
 func NewProxyPostFollow(c *gin.Context) *ProxyPostFollow {
 	return &ProxyPostFollow{c: c}
 }
 
-// 解析c的参数到代理结构体
+// PostFollowPrepareNum 解析c的参数到代理结构体
 func (p *ProxyPostFollow) PostFollowPrepareNum() error {
 	// 根据上层中间件设置的user_id获得user_id
 	rawUserId, _ := p.c.Get("user_id")
@@ -81,7 +81,7 @@ func (p *ProxyPostFollow) DoPostFollow() error {
 	return nil
 }
 
-func PostFollowHander(c *gin.Context) {
+func PostFollowHandler(c *gin.Context) {
 	p := NewProxyPostFollow(c)
 
 	err := p.DoPostFollow()

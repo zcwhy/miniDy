@@ -31,7 +31,7 @@ var (
 )
 
 func NewVideoDao() *VideoDAO {
-	videoOnce.Do(func() { // 保证DAO只执行一次，并且返回*********
+	videoOnce.Do(func() { // 保证DAO只执行一次，并且返回
 		videoDAO = new(VideoDAO)
 	})
 	return videoDAO
@@ -47,8 +47,8 @@ func (v *VideoDAO) QueryVideoListByUserId(userId int64, videoList *[]*Video) err
 }
 
 func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
-	userFavorVedio := &Video{}
-	exist := DB.Raw("SELECT f.* from user_favor_videos f WHERE f.user_info_id = ? AND f.video_id = ?", userId, videoId).Scan(userFavorVedio).RowsAffected
+	userFavorVideo := &Video{}
+	exist := DB.Raw("SELECT f.* from user_favor_videos f WHERE f.user_info_id = ? AND f.video_id = ?", userId, videoId).Scan(userFavorVideo).RowsAffected
 	if exist == 1 {
 		return true
 	}
