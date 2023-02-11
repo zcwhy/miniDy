@@ -1,6 +1,9 @@
 package model
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
 
 type UserInfo struct {
 	Id            int64       `json:"id" gorm:"id,omitempty"`
@@ -33,4 +36,11 @@ func NewUserInfoDao() *UserInfoDAO {
 
 func (s *UserInfoDAO) UserRegister(info *UserInfo) error {
 	return DB.Create(info).Error
+}
+
+func (s *UserInfoDAO) QueryUserInfoById(id int64, info *UserInfo) error {
+	if info == nil {
+		errors.New("QueryUserInfoById UserInfo 空指针")
+	}
+	return DB.Model(&UserInfo{}).Where("id = ?", id).Find(info).Error
 }

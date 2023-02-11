@@ -1,6 +1,8 @@
 package model
 
 import (
+	"errors"
+	"miniDy/constant"
 	"sync"
 	"time"
 )
@@ -47,4 +49,15 @@ func (*VideoDAO) CreateVideo(userId int64, playUrl string, title string) error {
 		PlayUrl:    playUrl,
 		Title:      title,
 	}).Error
+}
+
+func (*VideoDAO) QueryVideosByTime(latestTime time.Time, videoList *[]*Video) error {
+	if videoList == nil {
+		return errors.New("QueryVideosByTime videoList 空指针")
+	}
+	return DB.Model(&Video{}).Where("created_at >= ?", latestTime).
+		Order("created_at ASC").
+		Limit(constant.MAX_VIDEO_NUMBER).
+		Select([]string{"id", "user_info_id", "play_url", "cover_url", "favorite_count", "comment_count", "is_favorite", "title", "created_at", "updated_at"}).
+		Find(videoList).Error
 }
