@@ -61,3 +61,21 @@ func (*VideoDAO) QueryVideosByTime(latestTime time.Time, videoList *[]*Video) er
 		Select([]string{"id", "user_info_id", "play_url", "cover_url", "favorite_count", "comment_count", "is_favorite", "title", "created_at", "updated_at"}).
 		Find(videoList).Error
 }
+
+func (v *VideoDAO) QueryVideoListByUserId(userId int64, videoList *[]*Video) error {
+	if videoList == nil {
+		return errors.New("QueryVideoListByUserId videoList 空指针")
+	}
+	return DB.Where("user_info_id=?", userId).
+		Select([]string{"id", "user_info_id", "play_url", "cover_url", "favorite_count", "comment_count", "is_favorite", "title"}).
+		Find(videoList).Error
+}
+
+func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
+	userFavorVideo := &Video{}
+	exist := DB.Raw("SELECT f.* from user_favor_videos f WHERE f.user_info_id = ? AND f.video_id = ?", userId, videoId).Scan(userFavorVideo).RowsAffected
+	if exist == 1 {
+		return true
+	}
+	return false
+}

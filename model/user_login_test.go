@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestUserLoginDAO_IsUserExist(t *testing.T) {
+func TestUserLoginDao_IsUserExist(t *testing.T) {
 	userLoginDao := NewLoginDao()
 	exist := userLoginDao.IsUserExist("zcwhy333")
 
