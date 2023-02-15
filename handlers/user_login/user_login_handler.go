@@ -8,19 +8,19 @@ import (
 	"net/http"
 )
 
-type UserRegisterResponse struct {
+type UserLoginResponse struct {
 	response.CommonResp
-	*user_login.UserRegisterResponse
+	*user_login.UserLoginResponse
 }
 
-func UserRegisterHandler(c *gin.Context) {
+func UserLoginHandler(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	registerResponse, err := user_login.PostUserRegister(username, password)
+	resp, err := user_login.PostUserLogin(username, password)
 
 	if err != nil {
-		c.JSON(http.StatusOK, UserRegisterResponse{
+		c.JSON(http.StatusOK, UserLoginResponse{
 			CommonResp: response.CommonResp{
 				StatusCode: constant.FAILURE,
 				StatusMsg:  err.Error(),
@@ -29,11 +29,11 @@ func UserRegisterHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, UserRegisterResponse{
+	c.JSON(http.StatusOK, UserLoginResponse{
 		CommonResp: response.CommonResp{
 			StatusCode: constant.SUCCESS,
 			StatusMsg:  constant.SUCCESS_MESSAGE,
 		},
-		UserRegisterResponse: registerResponse,
+		UserLoginResponse: resp,
 	})
 }

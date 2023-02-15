@@ -2,8 +2,7 @@ package model
 
 import (
 	"errors"
-	"gorm.io/gorm"
-	"log"
+	"miniDy/constant"
 	"sync"
 	"time"
 )
@@ -28,54 +27,55 @@ type VideoDAO struct {
 }
 
 var (
-	videoDAO  *VideoDAO
-	videoOnce sync.Once
+	VideoDao     *VideoDAO
+	VideoDaoOnce sync.Once
 )
 
-func NewVideoDAO() *VideoDAO {
-	videoOnce.Do(func() {
-		videoDAO = new(VideoDAO)
+func NewVideoDao() *VideoDAO {
+	VideoDaoOnce.Do(func() {
+		VideoDao = new(VideoDAO)
 	})
-	return videoDAO
+	return VideoDao
 }
 
-// PlusOneFavorByUserIdAndVideoId 增加一个赞
-func (v *VideoDAO) PlusOneFavorByUserIdAndVideoId(userId int64, videoId int64) error {
-	return DB.Transaction(func(tx *gorm.DB) error {
-
-		return nil
-	})
+func (*VideoDAO) CountUserVideoById(userId int64) (int64, error) {
+	result := DB.Model(&Video{}).Where("user_info_id=?", userId)
+	return result.RowsAffected, result.Error
 }
 
-// MinusOneFavorByUserIdAndVideoId 减少一个赞
-func (v *VideoDAO) MinusOneFavorByUserIdAndVideoId(userId int64, videoId int64) error {
-	return DB.Transaction(func(tx *gorm.DB) error {
-		//执行-1之前需要先判断是否合法（不能被减少为负数
-
-		return nil
-	})
+func (*VideoDAO) CreateVideo(userId int64, playUrl string, title string) error {
+	return DB.Create(&Video{
+		UserInfoId: userId,
+		PlayUrl:    playUrl,
+		Title:      title,
+	}).Error
 }
 
-func (v *VideoDAO) QueryFavorVideoListByUserId(userId int64, videoList *[]*Video) error {
+func (*VideoDAO) QueryVideosByTime(latestTime time.Time, videoList *[]*Video) error {
 	if videoList == nil {
-		return errors.New("QueryFavorVideoListByUserId videoList 空指针")
+		return errors.New("QueryVideosByTime videoList 空指针")
 	}
-	//多表查询，左连接得到结果，再映射到数据
-
-	//如果id为0，则说明没有查到数据
-	if len(*videoList) == 0 || (*videoList)[0].Id == 0 {
-		return errors.New("点赞列表为空")
-	}
-	return nil
+	return DB.Model(&Video{}).Where("created_at >= ?", latestTime).
+		Order("created_at ASC").
+		Limit(constant.MAX_VIDEO_NUMBER).
+		Select([]string{"id", "user_info_id", "play_url", "cover_url", "favorite_count", "comment_count", "is_favorite", "title", "created_at", "updated_at"}).
+		Find(videoList).Error
 }
 
-func (v *VideoDAO) IsVideoExistById(id int64) bool {
-	var video Video
-	if err := DB.Where("id=?", id).Select("id").First(&video).Error; err != nil {
-		log.Println(err)
+func (v *VideoDAO) QueryVideoListByUserId(userId int64, videoList *[]*Video) error {
+	if videoList == nil {
+		return errors.New("QueryVideoListByUserId videoList 空指针")
 	}
-	if video.Id == 0 {
-		return false
+	return DB.Where("user_info_id=?", userId).
+		Select([]string{"id", "user_info_id", "play_url", "cover_url", "favorite_count", "comment_count", "is_favorite", "title"}).
+		Find(videoList).Error
+}
+
+func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
+	userFavorVideo := &Video{}
+	exist := DB.Raw("SELECT f.* from user_favor_videos f WHERE f.user_info_id = ? AND f.video_id = ?", userId, videoId).Scan(userFavorVideo).RowsAffected
+	if exist == 1 {
+		return true
 	}
-	return true
+	return false
 }

@@ -28,6 +28,12 @@ func NewLoginDao() *UserLoginDAO {
 	return userLoginDao
 }
 
+func (s *UserLoginDAO) QueryUserByName(username string) (*UserLogin, error) {
+	user := &UserLogin{}
+	err := DB.Where("username = ?", username).Find(user).Error
+	return user, err
+}
+
 func (s *UserLoginDAO) IsUserExist(username string) bool {
 	user := &UserLogin{}
 	exist := DB.Where("username = ?", username).Find(user).RowsAffected

@@ -35,3 +35,14 @@ func TestUserInfoDAO_UserRegister(t *testing.T) {
 		t.Error("user:zcwhy should exist but got false")
 	}
 }
+
+func TestUserInfoDAO_QueryUserInfoById(t *testing.T) {
+	userInfoDao := NewUserInfoDao()
+	userInfo := &UserInfo{}
+
+	_ = userInfoDao.QueryUserInfoById(7, userInfo)
+
+	if userInfo.Id != 7 {
+		t.Errorf("expected userId is 7 but got %d", userInfo.Id)
+	}
+}
