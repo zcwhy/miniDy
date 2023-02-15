@@ -1,6 +1,12 @@
 package model
 
-import "time"
+import (
+	"errors"
+	"gorm.io/gorm"
+	"log"
+	"sync"
+	"time"
+)
 
 type Video struct {
 	Id            int64       `json:"id,omitempty"`
@@ -16,4 +22,60 @@ type Video struct {
 	Comments      []*Comment  `json:"-"`
 	CreatedAt     time.Time   `json:"-"`
 	UpdatedAt     time.Time   `json:"-"`
+}
+
+type VideoDAO struct {
+}
+
+var (
+	videoDAO  *VideoDAO
+	videoOnce sync.Once
+)
+
+func NewVideoDAO() *VideoDAO {
+	videoOnce.Do(func() {
+		videoDAO = new(VideoDAO)
+	})
+	return videoDAO
+}
+
+// PlusOneFavorByUserIdAndVideoId 增加一个赞
+func (v *VideoDAO) PlusOneFavorByUserIdAndVideoId(userId int64, videoId int64) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+}
+
+// MinusOneFavorByUserIdAndVideoId 减少一个赞
+func (v *VideoDAO) MinusOneFavorByUserIdAndVideoId(userId int64, videoId int64) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		//执行-1之前需要先判断是否合法（不能被减少为负数
+
+		return nil
+	})
+}
+
+func (v *VideoDAO) QueryFavorVideoListByUserId(userId int64, videoList *[]*Video) error {
+	if videoList == nil {
+		return errors.New("QueryFavorVideoListByUserId videoList 空指针")
+	}
+	//多表查询，左连接得到结果，再映射到数据
+
+	//如果id为0，则说明没有查到数据
+	if len(*videoList) == 0 || (*videoList)[0].Id == 0 {
+		return errors.New("点赞列表为空")
+	}
+	return nil
+}
+
+func (v *VideoDAO) IsVideoExistById(id int64) bool {
+	var video Video
+	if err := DB.Where("id=?", id).Select("id").First(&video).Error; err != nil {
+		log.Println(err)
+	}
+	if video.Id == 0 {
+		return false
+	}
+	return true
 }

@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"miniDy/handlers/comment"
 	"miniDy/handlers/user_login"
 	"miniDy/model"
 )
@@ -23,8 +24,8 @@ func InitRouter() *gin.Engine {
 	//interaction apis
 	baseGroup.POST("/favorite/action")
 	baseGroup.GET("/favorite/list")
-	baseGroup.POST("/comment/action")
-	baseGroup.GET("/comment/list")
+	baseGroup.POST("/comment/action", comment.PostCommentHandler)
+	baseGroup.GET("/comment/list", comment.QueryCommentListHandler)
 
 	//social apis
 	baseGroup.POST("/relation/action")

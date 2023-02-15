@@ -32,5 +32,6 @@ func NewUserInfoDao() *UserInfoDAO {
 }
 
 func (s *UserInfoDAO) UserRegister(info *UserInfo) error {
-	return DB.Create(info).Error
+	_ = DB.Create(info).Error
+	return nil
 }
