@@ -27,7 +27,7 @@ func NewProxyQueryCommentListHandler(c *gin.Context) *ProxyQueryCommentListHandl
 }
 
 func QueryCommentListHandler(c *gin.Context) {
-	NewProxyPostCommentHandler(c).Do()
+	NewProxyQueryCommentListHandler(c).Do()
 }
 
 func (p *ProxyQueryCommentListHandler) Do() {
