@@ -3,4 +3,3 @@ user = "root"
 password = "admin"
 port = 3306
 database = "db_miniDy"
-
