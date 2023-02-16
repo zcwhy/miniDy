@@ -34,11 +34,13 @@ func (p *ProxyQueryCommentListHandler) Do() {
 	//解析query
 	if err := p.parser(); err != nil {
 		p.retError(err)
+		return
 	}
 	//调用service层QueryCommentList
 	commentListRes, err := comment.QueryCommentList(p.videoId)
 	if err != nil {
 		p.retError(err)
+		return
 	}
 	p.retOK(commentListRes)
 }
