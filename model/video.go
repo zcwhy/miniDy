@@ -2,6 +2,8 @@ package model
 
 import (
 	"errors"
+	"gorm.io/gorm"
+	"log"
 	"miniDy/constant"
 	"sync"
 	"time"
@@ -78,4 +80,33 @@ func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
 		return true
 	}
 	return false
+}
+
+func (v *VideoDAO) IsVideoExistById(videoId int64) bool {
+	video := &Video{}
+	if err := DB.First(&video, videoId); err != nil {
+		log.Println(err)
+	}
+	if video.Id == 0 {
+		return false
+	}
+	return true
+}
+
+func (v *VideoDAO) UpFavorByVideoId(videoId int64) error {
+	err := DB.Model(&Video{}).Where("id = ?", videoId).
+		Update("favorite_count", gorm.Expr("comment_count + ?", 1)).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *VideoDAO) DownFavorByVideoId(videoId int64) error {
+	err := DB.Model(&Video{}).Where("id = ?", videoId).
+		Update("favorite_count", gorm.Expr("comment_count + ?", -1)).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

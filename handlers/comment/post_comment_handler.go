@@ -38,12 +38,14 @@ func (p *ProxyPostCommentHandler) Do() {
 	//解析query
 	if err := p.parser(); err != nil {
 		p.retError(err)
+		return
 	}
 	//调用service层PostComment
 	commentRes, err := comment.PostComment(p.userId, p.videoId, p.commentId, p.actionType, p.commentText)
 
 	if err != nil {
 		p.retError(err)
+		return
 	}
 
 	p.retOK(commentRes)

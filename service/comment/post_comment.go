@@ -9,13 +9,6 @@ import (
 	"time"
 )
 
-/*
-	从handler处拿到收集的参数
-	1、构造流对象， 执行流对象的do方法
-	2、参数校验
-	3、收集dao层查询的数据，封装成返回对象返回给handler层
-*/
-
 type Response struct {
 	MyComment *model.Comment `json:"comment"`
 }
@@ -76,12 +69,12 @@ func (p *PostCommentFlow) DeleteComment() error {
 }
 
 func (p *PostCommentFlow) check() error {
-	//if !models.NewUserInfoDAO().IsUserExistById(q.userId) {
-	//	return fmt.Errorf("用户%d处于登出状态", q.userId)
-	//}
-	//if !models.NewVideoDAO().IsVideoExistById(q.videoId) {
-	//	return fmt.Errorf("视频%d不存在或已经被删除", q.videoId)
-	//}
+	if !model.NewUserInfoDao().IsUserExistById(p.userId) {
+		return fmt.Errorf("用户%d处于登出状态", p.userId)
+	}
+	if !model.NewVideoDao().IsVideoExistById(p.videoId) {
+		return fmt.Errorf("视频%d不存在或已经被删除", p.videoId)
+	}
 	return nil
 }
 
@@ -101,7 +94,9 @@ func (p *PostCommentFlow) pack() error {
 		return errors.New("comment is null-ptr")
 	}
 	userInfo := model.UserInfo{}
-	//_ = model.NewUserInfoDAO().QueryUserInfoById(p.comment.UserInfoId, &userInfo)
+	if err := model.NewUserInfoDao().QueryUserInfoById(p.comment.UserInfoId, &userInfo); err != nil {
+		return err
+	}
 	p.comment.User = userInfo
 	util.DateFormat(p.comment)
 	p.Response = &Response{MyComment: p.comment}

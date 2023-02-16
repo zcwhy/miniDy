@@ -2,16 +2,11 @@ package comment
 
 import (
 	"errors"
+	"fmt"
 	"miniDy/model"
 	"miniDy/util"
 )
 
-/*
-从handler处拿到收集的参数
-1、构造流对象， 执行流对象的do方法
-2、参数校验
-3、收集dao层查询的数据，封装成返回对象返回给handler层
-*/
 type CommentList struct {
 	Comments []*model.Comment
 }
@@ -31,37 +26,37 @@ func NewQueryCommentListFlow(videoId int64) *QueryCommentListFlow {
 	return &QueryCommentListFlow{videoId: videoId}
 }
 
-func (p *QueryCommentListFlow) Do() (*CommentList, error) {
-	if err := p.check(); err != nil {
+func (q *QueryCommentListFlow) Do() (*CommentList, error) {
+	if err := q.check(); err != nil {
 		return nil, err
 	}
-	if err := p.prepare(); err != nil {
+	if err := q.prepare(); err != nil {
 		return nil, err
 	}
-	if err := p.pack(); err != nil {
+	if err := q.pack(); err != nil {
 		return nil, err
 	}
-	return p.Response, nil
+	return q.Response, nil
 }
 
-func (p *QueryCommentListFlow) check() error {
-	//if !models.NewVideoDAO().IsVideoExistById(q.videoId) {
-	//	return fmt.Errorf("视频%d不存在或已经被删除", q.videoId)
-	//}
+func (q *QueryCommentListFlow) check() error {
+	if !model.NewVideoDao().IsVideoExistById(q.videoId) {
+		return fmt.Errorf("视频%d不存在或已经被删除", q.videoId)
+	}
 	return nil
 }
 
-func (p *QueryCommentListFlow) prepare() error {
-	return model.NewCommentDAO().QueryCommentListByVideoId(p.videoId, &p.commentList.Comments)
+func (q *QueryCommentListFlow) prepare() error {
+	return model.NewCommentDAO().QueryCommentListByVideoId(q.videoId, &q.commentList.Comments)
 }
 
-func (p *QueryCommentListFlow) pack() error {
-	if p.commentList.Comments == nil {
+func (q *QueryCommentListFlow) pack() error {
+	if q.commentList.Comments == nil {
 		return errors.New("the video have not comment")
 	}
-	for _, v := range p.commentList.Comments {
+	for _, v := range q.commentList.Comments {
 		util.DateFormat(v)
 	}
-	p.Response = &p.commentList
+	q.Response = &q.commentList
 	return nil
 }
