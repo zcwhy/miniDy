@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"miniDy/handlers/message"
 	"miniDy/handlers/user_info"
 	"miniDy/handlers/user_login"
 	"miniDy/handlers/video"
@@ -37,8 +38,8 @@ func InitRouter() *gin.Engine {
 	baseGroup.GET("/relation/follow/list", middleware.CheckIdMiddleWare)
 	baseGroup.GET("/favorite/follower/list", middleware.CheckIdMiddleWare)
 	baseGroup.GET("/favorite/friend/list", middleware.CheckIdMiddleWare)
-	//baseGroup.GET("/favorite/message/chat")
-	//baseGroup.GET("/favorite/message/action")
+	baseGroup.GET("/message/chat/", middleware.JWTMiddleWare)
+	baseGroup.POST("/message/action/", middleware.JWTMiddleWare, message.PostMessageActionHandler)
 
 	return r
 }
