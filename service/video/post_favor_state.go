@@ -7,16 +7,17 @@ import (
 )
 
 type PostFavorFlow struct {
+	userId     int64
 	videoId    int64
 	actionType int64
 }
 
-func NewPostFavorFlow(videoId, actionType int64) *PostFavorFlow {
+func NewPostFavorFlow(userId, videoId, actionType int64) *PostFavorFlow {
 	return &PostFavorFlow{videoId: videoId, actionType: actionType}
 }
 
-func PostFavor(videoId, actionType int64) error {
-	return NewPostFavorFlow(videoId, actionType).Do()
+func PostFavor(userId, videoId, actionType int64) error {
+	return NewPostFavorFlow(userId, videoId, actionType).Do()
 }
 
 func (p *PostFavorFlow) Do() error {
@@ -41,14 +42,14 @@ func (p *PostFavorFlow) Do() error {
 }
 
 func (p *PostFavorFlow) UpFavor() error {
-	if err := model.NewVideoDao().UpFavorByVideoId(p.videoId); err != nil {
+	if err := model.NewVideoDao().UpFavorByVideoId(p.userId, p.videoId); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (p *PostFavorFlow) DownFavor() error {
-	if err := model.NewVideoDao().DownFavorByVideoId(p.videoId); err != nil {
+	if err := model.NewVideoDao().DownFavorByVideoId(p.userId, p.videoId); err != nil {
 		return err
 	}
 	return nil

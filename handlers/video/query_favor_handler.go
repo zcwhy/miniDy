@@ -1,21 +1,26 @@
 package video
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"miniDy/constant"
+	"miniDy/model"
 	"miniDy/model/response"
+	"miniDy/service/video"
+	"miniDy/util"
 	"net/http"
 )
 
 type QueryFavorListResponse struct {
 	response.CommonResp
+	Response *model.FavorListResponse
 }
 
 type ProxyQueryFavorListHandler struct {
 	*gin.Context
 
-	videoId    int64
-	actionType int64
+	userId int64
 }
 
 func NewProxyQueryFavorListHandler(c *gin.Context) *ProxyQueryFavorListHandler {
@@ -23,7 +28,17 @@ func NewProxyQueryFavorListHandler(c *gin.Context) *ProxyQueryFavorListHandler {
 }
 
 func (p *ProxyQueryFavorListHandler) Do() {
+	if err := p.parser(); err != nil {
+		p.retError(err)
+		return
+	}
+	favorVideoListRes, err := video.QueryFavorList(p.userId)
+	if err != nil {
+		p.retError(err)
+		return
+	}
 
+	p.retOk(favorVideoListRes)
 }
 
 func QueryFavorListHandler(c *gin.Context) {
@@ -31,18 +46,26 @@ func QueryFavorListHandler(c *gin.Context) {
 }
 
 func (p *ProxyQueryFavorListHandler) parser() error {
-
+	rawUserId, ok := p.Get("user_id")
+	if !ok {
+		return errors.New("user not exist")
+	}
+	var err error
+	if p.userId, err = util.StringToInt64(fmt.Sprint(rawUserId)); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (p *ProxyQueryFavorListHandler) retOk() {
-	p.JSON(http.StatusOK, PostFavorResponse{
+func (p *ProxyQueryFavorListHandler) retOk(videoList *model.FavorListResponse) {
+	p.JSON(http.StatusOK, QueryFavorListResponse{
 		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS},
+		Response:   videoList,
 	})
 }
 
 func (p *ProxyQueryFavorListHandler) retError(err error) {
-	p.JSON(http.StatusOK, PostFavorResponse{
+	p.JSON(http.StatusOK, QueryFavorListResponse{
 		CommonResp: response.CommonResp{StatusCode: constant.FAILURE, StatusMsg: err.Error()},
 	})
 }

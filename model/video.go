@@ -25,6 +25,15 @@ type Video struct {
 	UpdatedAt     time.Time   `json:"-"`
 }
 
+type userFavorVideo struct {
+	userInfoId int64
+	videoId    int64
+}
+
+type FavorListResponse struct {
+	FavorVideoList []*Video `json:"video_list"`
+}
+
 type VideoDAO struct {
 }
 
@@ -83,30 +92,87 @@ func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
 }
 
 func (v *VideoDAO) IsVideoExistById(videoId int64) bool {
-	video := &Video{}
-	if err := DB.First(&video, videoId); err != nil {
+	newVideo := Video{}
+	if err := DB.First(&newVideo, videoId); err != nil {
 		log.Println(err)
 	}
-	if video.Id == 0 {
+	if newVideo.Id == 0 {
 		return false
 	}
 	return true
 }
 
-func (v *VideoDAO) UpFavorByVideoId(videoId int64) error {
-	err := DB.Model(&Video{}).Where("id = ?", videoId).
-		Update("favorite_count", gorm.Expr("comment_count + ?", 1)).Error
-	if err != nil {
-		return err
-	}
-	return nil
+func (v *VideoDAO) UpFavorByVideoId(userId, videoId int64) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		var err error
+		err = tx.Model(&Video{}).Where("id = ?", videoId).
+			Update("favorite_count", gorm.Expr("comment_count + ?", 1)).Error
+		if err != nil {
+			return err
+		}
+
+		ufv := &userFavorVideo{userInfoId: userId, videoId: videoId}
+		if v.IsUserFavorVideoExist(userId, videoId) == false {
+			err = tx.Table("user_favor_videos").Create(ufv).Error
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
-func (v *VideoDAO) DownFavorByVideoId(videoId int64) error {
-	err := DB.Model(&Video{}).Where("id = ?", videoId).
-		Update("favorite_count", gorm.Expr("comment_count + ?", -1)).Error
+func (v *VideoDAO) DownFavorByVideoId(userId, videoId int64) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		var err error
+		err = tx.Model(&Video{}).Where("id = ?", videoId).
+			Update("favorite_count", gorm.Expr("comment_count + ?", -1)).Error
+		if err != nil {
+			return err
+		}
+		ufv := &userFavorVideo{userInfoId: userId, videoId: videoId}
+		if v.IsUserFavorVideoExist(userId, videoId) == true {
+			err = tx.Table("user_favor_videos").Delete(ufv).Error
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (v *VideoDAO) QueryFavorListByUserId(userId int64) (*FavorListResponse, error) {
+	var list []*Video
+	var fvList []*userFavorVideo
+	var err error
+	err = DB.Transaction(func(tx *gorm.DB) error {
+		if err = tx.Model(&userFavorVideo{}).Where("user_info_id = ?", userId).Find(&fvList).Error; err != nil {
+			return err
+		}
+		for _, v := range fvList {
+			var favorVideo *Video
+			if err = tx.Model(&Video{}).First(favorVideo, v.videoId).Error; err != nil {
+				return err
+			}
+			list = append(list, favorVideo)
+		}
+		return nil
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &FavorListResponse{FavorVideoList: list}, nil
+}
+
+func (v *VideoDAO) QueryAuthorByVideoId(videoId int64, author *UserInfo) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		newVideo := Video{}
+		if err := tx.Model(&Video{}).First(&newVideo, videoId).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&UserInfo{}).First(author, newVideo.UserInfoId).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }

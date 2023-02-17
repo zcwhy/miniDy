@@ -18,6 +18,7 @@ type PostFavorResponse struct {
 type ProxyPostFavorHandler struct {
 	*gin.Context
 
+	userId     int64
 	videoId    int64
 	actionType int64
 }
@@ -31,7 +32,7 @@ func (p *ProxyPostFavorHandler) Do() {
 		p.retError(err)
 		return
 	}
-	if err := video.PostFavor(p.videoId, p.actionType); err != nil {
+	if err := video.PostFavor(p.userId, p.videoId, p.actionType); err != nil {
 		p.retError(err)
 		return
 	}
@@ -44,15 +45,19 @@ func PostFavorHandler(c *gin.Context) {
 
 func (p *ProxyPostFavorHandler) parser() error {
 	var err error
-	rawVideoId, exist := p.Get("video_id")
-	if exist != true {
-		return errors.New("videoID not exist")
-	}
+	rawVideoId := p.DefaultQuery("video_id", "0")
 	p.videoId, err = util.StringToInt64(fmt.Sprint(rawVideoId))
 	if err != nil {
 		return errors.New("parse video_id error")
 	}
-	p.actionType, err = util.StringToInt64(p.Query("action_type"))
+
+	rawUserId := p.DefaultQuery("user_id", "0")
+	p.userId, err = util.StringToInt64(fmt.Sprint(rawUserId))
+	if err != nil {
+		return errors.New("parse user_id error")
+	}
+
+	p.actionType, err = util.StringToInt64(p.DefaultQuery("action_type", "0"))
 	if err != nil {
 		return errors.New("parse action_type error")
 	}

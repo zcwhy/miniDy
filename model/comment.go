@@ -75,9 +75,6 @@ func (c *CommentDAO) QueryCommentById(id int64, comment *Comment) error {
 }
 
 func (c *CommentDAO) QueryCommentListByVideoId(id int64, comment *[]*Comment) error {
-	if comment == nil {
-		return errors.New("receiving nullptr when querying comment by video")
-	}
 	//Execution Services
 	if err := DB.First(comment).Where("video_id=?", id).Error; err != nil {
 		return err
