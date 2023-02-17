@@ -62,6 +62,12 @@ func (p *PostCommentFlow) CreateComment() error {
 }
 
 func (p *PostCommentFlow) DeleteComment() error {
+	p.comment = &model.Comment{
+		Id:         p.commentId,
+		UserInfoId: p.userId,
+		VideoId:    p.videoId,
+		CreatedAt:  time.Time{},
+	}
 	if err := model.NewCommentDAO().DeleteComment(p.comment); err != nil {
 		return err
 	}

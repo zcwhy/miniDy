@@ -26,8 +26,8 @@ type Video struct {
 }
 
 type userFavorVideo struct {
-	userInfoId int64
-	videoId    int64
+	UserInfoId int64 `json:"user_info_id,omitempty" gorm:"user_info_id"`
+	VideoId    int64 `json:"video_id,omitempty" gorm:"video_id"`
 }
 
 type FavorListResponse struct {
@@ -111,9 +111,9 @@ func (v *VideoDAO) UpFavorByVideoId(userId, videoId int64) error {
 			return err
 		}
 
-		ufv := &userFavorVideo{userInfoId: userId, videoId: videoId}
+		ufv := userFavorVideo{UserInfoId: userId, VideoId: videoId}
 		if v.IsUserFavorVideoExist(userId, videoId) == false {
-			err = tx.Table("user_favor_videos").Create(ufv).Error
+			err = tx.Model(&userFavorVideo{}).Create(&ufv).Error
 			if err != nil {
 				return err
 			}
@@ -130,9 +130,9 @@ func (v *VideoDAO) DownFavorByVideoId(userId, videoId int64) error {
 		if err != nil {
 			return err
 		}
-		ufv := &userFavorVideo{userInfoId: userId, videoId: videoId}
+		ufv := userFavorVideo{UserInfoId: userId, VideoId: videoId}
 		if v.IsUserFavorVideoExist(userId, videoId) == true {
-			err = tx.Table("user_favor_videos").Delete(ufv).Error
+			err = tx.Model(&userFavorVideo{}).Delete(&ufv).Error
 			if err != nil {
 				return err
 			}
@@ -151,7 +151,7 @@ func (v *VideoDAO) QueryFavorListByUserId(userId int64) (*FavorListResponse, err
 		}
 		for _, v := range fvList {
 			var favorVideo *Video
-			if err = tx.Model(&Video{}).First(favorVideo, v.videoId).Error; err != nil {
+			if err = tx.Model(&Video{}).First(favorVideo, v.VideoId).Error; err != nil {
 				return err
 			}
 			list = append(list, favorVideo)

@@ -48,7 +48,7 @@ func QueryFavorListHandler(c *gin.Context) {
 func (p *ProxyQueryFavorListHandler) parser() error {
 	rawUserId, ok := p.Get("user_id")
 	if !ok {
-		return errors.New("user not exist")
+		return errors.New("用户不存在")
 	}
 	var err error
 	if p.userId, err = util.StringToInt64(fmt.Sprint(rawUserId)); err != nil {
