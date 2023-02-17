@@ -35,7 +35,7 @@ func (p *PostFavorFlow) Do() error {
 			return err
 		}
 	default:
-		return fmt.Errorf("undefined action_type %v", p.actionType)
+		return fmt.Errorf("未定义用户行为 %v", p.actionType)
 	}
 
 	return nil

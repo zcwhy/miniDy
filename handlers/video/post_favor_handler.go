@@ -48,18 +48,18 @@ func (p *ProxyPostFavorHandler) parser() error {
 	rawVideoId := p.DefaultQuery("video_id", "0")
 	p.videoId, err = util.StringToInt64(fmt.Sprint(rawVideoId))
 	if err != nil {
-		return errors.New("parse video_id error")
+		return errors.New("解析视频ID出错")
 	}
 
 	rawUserId := p.DefaultQuery("user_id", "0")
 	p.userId, err = util.StringToInt64(fmt.Sprint(rawUserId))
 	if err != nil {
-		return errors.New("parse user_id error")
+		return errors.New("解析用户ID出错")
 	}
 
 	p.actionType, err = util.StringToInt64(p.DefaultQuery("action_type", "0"))
 	if err != nil {
-		return errors.New("parse action_type error")
+		return errors.New("解析用户操作出错")
 	}
 	return nil
 }

@@ -26,7 +26,7 @@ func NewCommentDAO() *CommentDAO {
 
 func (c *CommentDAO) AddComment(comment *Comment) error {
 	if comment == nil {
-		return errors.New("receiving nullptr when adding comment")
+		return errors.New("所添加评论为NULL")
 	}
 	//Execution Services
 	return DB.Transaction(func(tx *gorm.DB) error {
@@ -47,7 +47,7 @@ func (c *CommentDAO) AddComment(comment *Comment) error {
 
 func (c *CommentDAO) DeleteComment(comment *Comment) error {
 	if comment == nil {
-		return errors.New("receiving nullptr when deleting comment")
+		return errors.New("所删除评论为NULL")
 	}
 	//Execution Services
 	return DB.Transaction(func(tx *gorm.DB) error {
@@ -65,7 +65,7 @@ func (c *CommentDAO) DeleteComment(comment *Comment) error {
 
 func (c *CommentDAO) QueryCommentById(id int64, comment *Comment) error {
 	if comment == nil {
-		return errors.New("receiving nullptr when querying comment by id")
+		return errors.New("所查找评论为NULL")
 	}
 	//Execution Services
 	if err := DB.First(comment, id).Error; err != nil {

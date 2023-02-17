@@ -85,13 +85,13 @@ func (p *PostCommentFlow) prepare() error {
 	case constant.DELETE:
 		return p.DeleteComment()
 	default:
-		return fmt.Errorf("undefined action %v", p.actionType)
+		return fmt.Errorf("未定义的行为 %v", p.actionType)
 	}
 }
 
 func (p *PostCommentFlow) pack() error {
 	if p.comment == nil {
-		return errors.New("comment is null-ptr")
+		return errors.New("评论不存在")
 	}
 	userInfo := model.UserInfo{}
 	if err := model.NewUserInfoDao().QueryUserInfoById(p.comment.UserInfoId, &userInfo); err != nil {

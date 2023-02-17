@@ -54,22 +54,21 @@ func (p *ProxyPostCommentHandler) Do() {
 func (p *ProxyPostCommentHandler) parser() error {
 	//
 	var err error = nil
-	rawVideoId, exist := p.Get("video_id")
-	if exist == false {
-		return errors.New("videoID not exist")
-	} else {
-		p.videoId, err = util.StringToInt64(fmt.Sprint(rawVideoId))
-		if err != nil {
-			return errors.New("parse videoID error")
-		}
-	}
-	p.userId, err = util.StringToInt64(p.Query("user_id"))
+	p.videoId, err = util.StringToInt64(p.DefaultQuery("video_id", "0"))
 	if err != nil {
-		return errors.New("parse user_id error")
+		return errors.New("解析视频ID出错")
+	}
+	if p.videoId == 0 {
+		return errors.New("视频不存在")
+	}
+
+	p.userId, err = util.StringToInt64(p.DefaultQuery("user_id", "0"))
+	if err != nil {
+		return errors.New("解析用户ID出错")
 	}
 	p.actionType, err = util.StringToInt64(p.Query("action_type"))
 	if err != nil {
-		return errors.New("parse action_type error")
+		return errors.New("解析用户操作出错")
 	}
 	//
 	switch p.actionType {
@@ -78,10 +77,10 @@ func (p *ProxyPostCommentHandler) parser() error {
 	case constant.DELETE:
 		p.commentId, err = util.StringToInt64(p.Query("comment_id"))
 		if err != nil {
-			return errors.New("parse comment_id error")
+			return errors.New("解析评论ID出错")
 		}
 	default:
-		return fmt.Errorf("undefined action %v", p.actionType)
+		return fmt.Errorf("未定义用户行为 %v", p.actionType)
 	}
 	return nil
 }

@@ -52,7 +52,7 @@ func (q *QueryCommentListFlow) prepare() error {
 
 func (q *QueryCommentListFlow) pack() error {
 	if q.commentList.Comments == nil {
-		return errors.New("the video have not comment")
+		return errors.New("暂无评论")
 	}
 	for _, v := range q.commentList.Comments {
 		util.DateFormat(v)

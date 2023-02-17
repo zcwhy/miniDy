@@ -2,7 +2,6 @@ package comment
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"miniDy/constant"
 	"miniDy/model"
@@ -47,15 +46,13 @@ func (p *ProxyQueryCommentListHandler) Do() {
 
 func (p *ProxyQueryCommentListHandler) parser() error {
 	//
-	var err error = nil
-	rawVideoId, exist := p.Get("video_id")
-	if exist == false {
-		return errors.New("videoID not exist")
-	} else {
-		p.videoId, err = util.StringToInt64(fmt.Sprint(rawVideoId))
-		if err != nil {
-			return errors.New("parse videoID error")
-		}
+	var err error
+	p.videoId, err = util.StringToInt64(p.DefaultQuery("video_id", "0"))
+	if err != nil {
+		return errors.New("解析视频ID出错")
+	}
+	if p.videoId == 0 {
+		return errors.New("视频不存在")
 	}
 	return nil
 }
