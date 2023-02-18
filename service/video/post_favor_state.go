@@ -13,7 +13,7 @@ type PostFavorFlow struct {
 }
 
 func NewPostFavorFlow(userId, videoId, actionType int64) *PostFavorFlow {
-	return &PostFavorFlow{videoId: videoId, actionType: actionType}
+	return &PostFavorFlow{userId: userId, videoId: videoId, actionType: actionType}
 }
 
 func PostFavor(userId, videoId, actionType int64) error {

@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"log"
 	"miniDy/constant"
@@ -98,16 +99,19 @@ func (v *VideoDAO) IsVideoExistById(videoId int64) bool {
 }
 
 func (v *VideoDAO) UpFavorByVideoId(userId, videoId int64) error {
+
 	return DB.Transaction(func(tx *gorm.DB) error {
 		var err error
+
 		err = tx.Model(&Video{}).Where("id = ?", videoId).
 			Update("favorite_count", gorm.Expr("comment_count + ?", 1)).Error
 		if err != nil {
 			return err
 		}
 
-		err = tx.Raw("INSERT INTO user_favor_videos (user_info_id, video_id) VALUES (?, ?)", userId, videoId).Error
+		err = tx.Exec("INSERT INTO user_favor_videos (user_info_id, video_id) VALUES (?, ?)", userId, videoId).Error
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 		return nil
@@ -122,7 +126,7 @@ func (v *VideoDAO) DownFavorByVideoId(userId, videoId int64) error {
 		if err != nil {
 			return err
 		}
-		err = tx.Raw("DELETE FROM user_favor_videos WHERE user_info_id = ? AND video_id = ?", userId, videoId).Error
+		err = tx.Exec("DELETE FROM user_favor_videos WHERE user_info_id = ? AND video_id = ?", userId, videoId).Error
 		if err != nil {
 			return err
 		}
