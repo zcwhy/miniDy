@@ -14,7 +14,7 @@ import (
 
 type QueryFavorListResponse struct {
 	response.CommonResp
-	Response *model.FavorListResponse
+	*video.List
 }
 
 type ProxyQueryFavorListHandler struct {
@@ -57,10 +57,10 @@ func (p *ProxyQueryFavorListHandler) parser() error {
 	return nil
 }
 
-func (p *ProxyQueryFavorListHandler) retOk(videoList *model.FavorListResponse) {
+func (p *ProxyQueryFavorListHandler) retOk(Res *[]*model.Video) {
 	p.JSON(http.StatusOK, QueryFavorListResponse{
-		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS},
-		Response:   videoList,
+		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS, StatusMsg: "获取列表成功"},
+		List:       &video.List{Video: *Res},
 	})
 }
 

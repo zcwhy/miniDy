@@ -12,23 +12,22 @@ func NewQueryFavorListFlow(userId int64) *QueryFavorListFlow {
 	return &QueryFavorListFlow{userId}
 }
 
-func QueryFavorList(userId int64) (*model.FavorListResponse, error) {
+func QueryFavorList(userId int64) (*[]*model.Video, error) {
 	return NewQueryFavorListFlow(userId).Do()
 }
 
-func (q *QueryFavorListFlow) Do() (*model.FavorListResponse, error) {
-	videoDao := model.NewVideoDao()
-	//FavorVideoList := &model.FavorListResponse{}
-	FavorVideoList, err := videoDao.QueryFavorListByUserId(q.userId)
+func (q *QueryFavorListFlow) Do() (*[]*model.Video, error) {
+	FavorVideoList, err := model.NewVideoDao().QueryFavorListByUserId(q.userId)
 	if err != nil {
 		return nil, err
 	}
 	if FavorVideoList != nil {
-		for _, v := range FavorVideoList.FavorVideoList {
-			err := videoDao.QueryAuthorByVideoId(v.Id, &v.Author)
-			if err != nil {
+		for _, v := range *FavorVideoList {
+			user := model.UserInfo{}
+			if err = model.NewVideoDao().QueryAuthorByVideoId(v.Id, &user); err != nil {
 				return nil, err
 			}
+			v.Author = user
 		}
 	}
 	return FavorVideoList, nil

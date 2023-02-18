@@ -25,13 +25,8 @@ type Video struct {
 	UpdatedAt     time.Time   `json:"-"`
 }
 
-type userFavorVideo struct {
-	UserInfoId int64 `json:"user_info_id,omitempty" gorm:"user_info_id"`
-	VideoId    int64 `json:"video_id,omitempty" gorm:"video_id"`
-}
-
 type FavorListResponse struct {
-	FavorVideoList []*Video `json:"video_list"`
+	FavorVideoList *[]*Video `json:"video_list"`
 }
 
 type VideoDAO struct {
@@ -111,12 +106,9 @@ func (v *VideoDAO) UpFavorByVideoId(userId, videoId int64) error {
 			return err
 		}
 
-		ufv := userFavorVideo{UserInfoId: userId, VideoId: videoId}
-		if v.IsUserFavorVideoExist(userId, videoId) == false {
-			err = tx.Model(&userFavorVideo{}).Create(&ufv).Error
-			if err != nil {
-				return err
-			}
+		err = tx.Raw("INSERT INTO user_favor_videos (user_info_id, video_id) VALUES (?, ?)", userId, videoId).Error
+		if err != nil {
+			return err
 		}
 		return nil
 	})
@@ -130,38 +122,49 @@ func (v *VideoDAO) DownFavorByVideoId(userId, videoId int64) error {
 		if err != nil {
 			return err
 		}
-		ufv := userFavorVideo{UserInfoId: userId, VideoId: videoId}
-		if v.IsUserFavorVideoExist(userId, videoId) == true {
-			err = tx.Model(&userFavorVideo{}).Delete(&ufv).Error
-			if err != nil {
-				return err
-			}
+		err = tx.Raw("DELETE FROM user_favor_videos WHERE user_info_id = ? AND video_id = ?", userId, videoId).Error
+		if err != nil {
+			return err
 		}
 		return nil
 	})
 }
 
-func (v *VideoDAO) QueryFavorListByUserId(userId int64) (*FavorListResponse, error) {
-	var list []*Video
-	var fvList []*userFavorVideo
+func (v *VideoDAO) QueryFavorListByUserId(userId int64) (*[]*Video, error) {
+	list := make([]*Video, 0)
+
+	fvList := make([]int64, 100, 200)
 	var err error
 	err = DB.Transaction(func(tx *gorm.DB) error {
-		if err = tx.Model(&userFavorVideo{}).Where("user_info_id = ?", userId).Find(&fvList).Error; err != nil {
+		if !NewUserInfoDao().IsUserExistById(userId) {
+			return errors.New("用户不存在")
+		}
+		if err = tx.Table("user_favor_videos").Select("video_id").Scan(&fvList).Error; err != nil {
 			return err
 		}
-		for _, v := range fvList {
-			var favorVideo *Video
-			if err = tx.Model(&Video{}).First(favorVideo, v.VideoId).Error; err != nil {
+		if len(fvList) == 0 {
+			return errors.New("用户还没有喜欢的视频")
+		}
+		//return errors.New(fmt.Sprint(fvList))
+		for _, vid := range fvList {
+			if vid == 0 {
+				break
+			}
+			var favorVideo Video
+			if err = tx.Model(&Video{}).First(&favorVideo, vid).Error; err != nil {
 				return err
 			}
-			list = append(list, favorVideo)
+			list = append(list, &favorVideo)
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &FavorListResponse{FavorVideoList: list}, nil
+	if len(list) == 0 {
+		return nil, errors.New("喜欢列表为空")
+	}
+	return &list, nil
 }
 
 func (v *VideoDAO) QueryAuthorByVideoId(videoId int64, author *UserInfo) error {

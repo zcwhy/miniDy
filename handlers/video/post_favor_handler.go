@@ -66,7 +66,7 @@ func (p *ProxyPostFavorHandler) parser() error {
 
 func (p *ProxyPostFavorHandler) retOk() {
 	p.JSON(http.StatusOK, PostFavorResponse{
-		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS},
+		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS, StatusMsg: "(❤ ω ❤)"},
 	})
 }
 

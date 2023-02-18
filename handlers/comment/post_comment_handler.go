@@ -88,7 +88,7 @@ func (p *ProxyPostCommentHandler) parser() error {
 func (p *ProxyPostCommentHandler) retError(err error) {
 	p.JSON(http.StatusOK, PostCommentResponse{
 		CommonResp: response.CommonResp{StatusCode: constant.FAILURE, StatusMsg: err.Error()},
-		Response:   &comment.Response{},
+		Response:   nil,
 	})
 }
 

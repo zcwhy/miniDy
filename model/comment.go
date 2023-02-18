@@ -51,6 +51,9 @@ func (c *CommentDAO) DeleteComment(comment *Comment) error {
 	}
 	//Execution Services
 	return DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&Comment{}).Where("id = ?", comment.Id).First(comment).Error; err != nil {
+			return err
+		}
 		if err := tx.Model(&Comment{}).Where("id = ?", comment.Id).Delete(comment).Error; err != nil {
 			return err
 		}
@@ -77,6 +80,11 @@ func (c *CommentDAO) QueryCommentListByVideoId(id int64, comment *[]*Comment) er
 	//Execution Services
 	if err := DB.Where("video_id = ?", id).Find(comment).Error; err != nil {
 		return err
+	}
+	for _, v := range *comment {
+		if err := NewUserInfoDao().QueryUserInfoById(v.UserInfoId, &v.User); err != nil {
+			return err
+		}
 	}
 	return nil
 }
