@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"miniDy/constant"
 	"sync"
 	"time"
 )
@@ -36,4 +37,12 @@ func (m *MessageDAO) CreateMessage(message *Message) error {
 	}
 
 	return DB.Create(message).Error
+}
+
+func (m *MessageDAO) QueryMessages(userId, toUserId int64, lastTime time.Time, messageList *[]*Message) error {
+	if messageList == nil {
+		return errors.New("QueryMessages messageList 空指针")
+	}
+	return DB.Where("from_user_id = ? AND to_user_id = ? AND create_time  > ?", userId, toUserId, lastTime).
+		Limit(constant.MAX_MESSAGE_NUMBER).Find(messageList).Error
 }

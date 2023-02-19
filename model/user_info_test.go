@@ -46,3 +46,20 @@ func TestUserInfoDAO_QueryUserInfoById(t *testing.T) {
 		t.Errorf("expected userId is 7 but got %d", userInfo.Id)
 	}
 }
+
+func TestUserInfoDAO_IsUserExistById(t *testing.T) {
+	var exist bool
+	userInfoDao := NewUserInfoDao()
+
+	exist = userInfoDao.IsUserExistById(5)
+
+	if exist == false {
+		t.Error("userId = 5 expected userInfo exist but not")
+	}
+
+	exist = userInfoDao.IsUserExistById(10)
+
+	if exist == true {
+		t.Error("userId = 10 expected userInfo not exist but not")
+	}
+}

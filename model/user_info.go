@@ -44,3 +44,7 @@ func (s *UserInfoDAO) QueryUserInfoById(id int64, info *UserInfo) error {
 	}
 	return DB.Model(&UserInfo{}).Where("id = ?", id).Find(info).Error
 }
+
+func (s *UserInfoDAO) IsUserExistById(userId int64) bool {
+	return DB.Find(&UserInfo{}, userId).RowsAffected == 1
+}
