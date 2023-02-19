@@ -38,8 +38,9 @@ func (p *PostMessageActionService) Do() error {
 }
 
 func (p *PostMessageActionService) checkParam() error {
-	if p.toUserId == 0 {
-		return errors.New("对方用户id出错")
+	userInfoDao := model.NewUserInfoDao()
+	if userInfoDao.IsUserExistById(p.toUserId) == false {
+		return errors.New("发送用户id错误")
 	}
 
 	if p.content == "" {
