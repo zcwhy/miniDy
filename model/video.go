@@ -2,6 +2,9 @@ package model
 
 import (
 	"errors"
+	"fmt"
+	"gorm.io/gorm"
+	"log"
 	"miniDy/constant"
 	"sync"
 	"time"
@@ -21,6 +24,10 @@ type Video struct {
 	Comments      []*Comment  `json:"-"`
 	CreatedAt     time.Time   `json:"-"`
 	UpdatedAt     time.Time   `json:"-"`
+}
+
+type FavorListResponse struct {
+	FavorVideoList *[]*Video `json:"video_list"`
 }
 
 type VideoDAO struct {
@@ -78,4 +85,101 @@ func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
 		return true
 	}
 	return false
+}
+
+func (v *VideoDAO) IsVideoExistById(videoId int64) bool {
+	newVideo := Video{}
+	if err := DB.First(&newVideo, videoId); err != nil {
+		log.Println(err)
+	}
+	if newVideo.Id == 0 {
+		return false
+	}
+	return true
+}
+
+func (v *VideoDAO) UpFavorByVideoId(userId, videoId int64) error {
+
+	return DB.Transaction(func(tx *gorm.DB) error {
+		var err error
+
+		err = tx.Model(&Video{}).Where("id = ?", videoId).
+			Update("favorite_count", gorm.Expr("comment_count + ?", 1)).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Exec("INSERT INTO user_favor_videos (user_info_id, video_id) VALUES (?, ?)", userId, videoId).Error
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		return nil
+	})
+}
+
+func (v *VideoDAO) DownFavorByVideoId(userId, videoId int64) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		var err error
+		err = tx.Model(&Video{}).Where("id = ?", videoId).
+			Update("favorite_count", gorm.Expr("comment_count + ?", -1)).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Exec("DELETE FROM user_favor_videos WHERE user_info_id = ? AND video_id = ?", userId, videoId).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (v *VideoDAO) QueryFavorListByUserId(userId int64) (*[]*Video, error) {
+	list := make([]*Video, 0)
+
+	fvList := make([]int64, 100, 200)
+	var err error
+	err = DB.Transaction(func(tx *gorm.DB) error {
+		if !NewUserInfoDao().IsUserExistById(userId) {
+			return errors.New("用户不存在")
+		}
+		if err = tx.Table("user_favor_videos").Select("video_id").Scan(&fvList).Error; err != nil {
+			return err
+		}
+		if len(fvList) == 0 {
+			return errors.New("用户还没有喜欢的视频")
+		}
+		//return errors.New(fmt.Sprint(fvList))
+		for _, vid := range fvList {
+			if vid == 0 {
+				break
+			}
+			var favorVideo Video
+			if err = tx.Model(&Video{}).First(&favorVideo, vid).Error; err != nil {
+				return err
+			}
+			list = append(list, &favorVideo)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, errors.New("喜欢列表为空")
+	}
+	return &list, nil
+}
+
+func (v *VideoDAO) QueryAuthorByVideoId(videoId int64, author *UserInfo) error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		newVideo := Video{}
+		if err := tx.Model(&Video{}).First(&newVideo, videoId).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&UserInfo{}).First(author, newVideo.UserInfoId).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }

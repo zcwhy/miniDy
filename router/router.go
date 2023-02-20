@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"miniDy/handlers/comment"
 	"miniDy/handlers/user_info"
 	"miniDy/handlers/user_login"
 	"miniDy/handlers/video"
@@ -27,10 +28,10 @@ func InitRouter() *gin.Engine {
 	baseGroup.POST("/publish/action/", middleware.JWTMiddleWare, video.PublishVideoHandler)
 
 	//interaction apis
-	baseGroup.POST("/favorite/action/", middleware.JWTMiddleWare)
-	baseGroup.GET("/favorite/list", middleware.CheckIdMiddleWare)
-	baseGroup.POST("/comment/action", middleware.JWTMiddleWare)
-	baseGroup.GET("/comment/list", middleware.JWTMiddleWare)
+	baseGroup.POST("/favorite/action/", middleware.JWTMiddleWare, video.PostFavorHandler)
+	baseGroup.GET("/favorite/list", middleware.CheckIdMiddleWare, video.QueryFavorListHandler)
+	baseGroup.POST("/comment/action", middleware.JWTMiddleWare, comment.PostCommentHandler)
+	baseGroup.GET("/comment/list", middleware.JWTMiddleWare, comment.QueryCommentListHandler)
 
 	//social apis
 	baseGroup.POST("/relation/action/", middleware.JWTMiddleWare, user_info.PostFollowHandler) // 关注操作接口完成(xqy)

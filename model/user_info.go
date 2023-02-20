@@ -37,12 +37,14 @@ func NewUserInfoDao() *UserInfoDAO {
 	UserInfoOnce.Do(func() {
 		UserInfoDao = new(UserInfoDAO)
 	})
-
 	return UserInfoDao
 }
 
 func (s *UserInfoDAO) UserRegister(info *UserInfo) error {
-	return DB.Create(info).Error
+	if err := DB.Create(info).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // <<<<<<< HEAD
