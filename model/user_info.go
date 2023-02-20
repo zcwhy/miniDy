@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"gorm.io/gorm"
-	"log"
 	"sync"
 )
 
@@ -47,13 +46,6 @@ func (s *UserInfoDAO) UserRegister(info *UserInfo) error {
 	return nil
 }
 
-// <<<<<<< HEAD
-//
-//	func (s *UserInfoDAO) QueryUserInfoById(id int64, info *UserInfo) error {
-//		if info == nil {
-//			errors.New("QueryUserInfoById UserInfo 空指针")
-//		}
-//		return DB.Model(&UserInfo{}).Where("id = ?", id).Find(info).Error
 func (s *UserInfoDAO) QueryUserInfoById(userId int64, userInfo *UserInfo) error {
 	if userInfo == nil {
 		return ErrIvdPtr
@@ -63,17 +55,6 @@ func (s *UserInfoDAO) QueryUserInfoById(userId int64, userInfo *UserInfo) error 
 		return errors.New("用户不存在")
 	}
 	return nil
-}
-
-func (s *UserInfoDAO) IsUserExistById(userId int64) bool {
-	var userinfo UserInfo
-	if err := DB.Where("id=?", userId).Select("id").First(&userinfo).Error; err != nil {
-		log.Println(err)
-	}
-	if userinfo.Id == 0 {
-		return false
-	}
-	return true
 }
 
 func (s *UserInfoDAO) AddUserFollow(userId int64, followId int64) error {
@@ -114,4 +95,31 @@ func (s *UserInfoDAO) IsFollowExist(userId int64, followId int64) bool {
 		return true
 	}
 	return false
+}
+
+func (s *UserInfoDAO) IsUserExistById(userId int64) bool {
+	return DB.Find(&UserInfo{}, userId).RowsAffected == 1
+}
+
+func (s *UserInfoDAO) QueryFollowListById(id int64, followList *[]*UserInfo) error {
+	if followList == nil {
+		errors.New("QueryFollowListById followList 空指针")
+	}
+	return DB.Raw("SELECT u.* FROM user_relations r, user_infos u WHERE r.user_info_id = ? AND r.follow_id = u.id", id).Scan(followList).Error
+}
+
+func (s *UserInfoDAO) QueryFollowerListById(id int64, followerList *[]*UserInfo) error {
+	if followerList == nil {
+		errors.New("QueryFollowerListById followList 空指针")
+	}
+	return DB.Raw("SELECT u.* FROM user_relations r, user_infos u WHERE r.follow_id = ? AND r.user_info_id = u.id", id).Scan(followerList).Error
+}
+
+func (s *UserInfoDAO) QueryFriendListById(id int64, followerList *[]*UserInfo) error {
+	if followerList == nil {
+		errors.New("QueryFollowerListById followList 空指针")
+	}
+	return DB.Raw("SELECT u.* FROM user_relations r1, user_relations r2, user_infos u  WHERE r1.user_info_id = r2.follow_id "+
+		"AND  r1.follow_id = r2.user_info_id "+
+		"AND r1.user_info_id = ? AND r1.follow_id = u.id", id).Scan(followerList).Error
 }

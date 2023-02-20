@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"miniDy/handlers/comment"
+	"miniDy/handlers/message"
 	"miniDy/handlers/user_info"
 	"miniDy/handlers/user_login"
 	"miniDy/handlers/video"
@@ -34,12 +35,12 @@ func InitRouter() *gin.Engine {
 	baseGroup.GET("/comment/list", middleware.JWTMiddleWare, comment.QueryCommentListHandler)
 
 	//social apis
-	baseGroup.POST("/relation/action/", middleware.JWTMiddleWare, user_info.PostFollowHandler) // 关注操作接口完成(xqy)
-	baseGroup.GET("/relation/follow/list", middleware.CheckIdMiddleWare)
-	baseGroup.GET("/favorite/follower/list", middleware.CheckIdMiddleWare)
-	baseGroup.GET("/favorite/friend/list", middleware.CheckIdMiddleWare)
-	//baseGroup.GET("/favorite/message/chat")
-	//baseGroup.GET("/favorite/message/action")
+	baseGroup.POST("/relation/action", middleware.JWTMiddleWare, user_info.PostFollowHandler)
+	baseGroup.GET("/relation/follow/list", middleware.CheckIdMiddleWare, user_info.GetFollowListHandler)
+	baseGroup.GET("/relation/follower/list", middleware.CheckIdMiddleWare, user_info.GetFollowerListHandler)
+	baseGroup.GET("/relation/friend/list", middleware.CheckIdMiddleWare, user_info.GetFriendListHandler)
+	baseGroup.GET("/message/chat/", middleware.JWTMiddleWare, message.GetChattingRecordsHandler)
+	baseGroup.POST("/message/action/", middleware.JWTMiddleWare, message.PostMessageActionHandler)
 
 	return r
 }
