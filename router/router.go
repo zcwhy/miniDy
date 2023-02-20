@@ -35,8 +35,8 @@ func InitRouter() *gin.Engine {
 
 	//social apis
 	baseGroup.POST("/relation/action", middleware.JWTMiddleWare, user_info.PostFollowActionHandler)
-	baseGroup.GET("/relation/follow/list", middleware.CheckIdMiddleWare)
-	baseGroup.GET("/favorite/follower/list", middleware.CheckIdMiddleWare)
+	baseGroup.GET("/relation/follow/list", middleware.CheckIdMiddleWare, user_info.GetFollowListHandler)
+	baseGroup.GET("/relation/follower/list", middleware.CheckIdMiddleWare, user_info.GetFollowerListHandler)
 	baseGroup.GET("/favorite/friend/list", middleware.CheckIdMiddleWare)
 	baseGroup.GET("/message/chat/", middleware.JWTMiddleWare, message.GetChattingRecordsHandler)
 	baseGroup.POST("/message/action/", middleware.JWTMiddleWare, message.PostMessageActionHandler)

@@ -63,3 +63,31 @@ func TestUserInfoDAO_IsUserExistById(t *testing.T) {
 		t.Error("userId = 10 expected userInfo not exist but not")
 	}
 }
+
+func TestUserInfoDAO_QueryFollowListById(t *testing.T) {
+	userInfoDao := NewUserInfoDao()
+
+	var followList []*UserInfo
+
+	if err := userInfoDao.QueryFollowListById(7, &followList); err != nil {
+		t.Error(err.Error())
+	}
+
+	if len(followList) != 2 {
+		t.Errorf("expected get 2 follow, but got %d", len(followList))
+	}
+}
+
+func TestUserInfoDAO_QueryFollowerListById(t *testing.T) {
+	userInfoDao := NewUserInfoDao()
+
+	var followerList []*UserInfo
+
+	if err := userInfoDao.QueryFollowListById(7, &followerList); err != nil {
+		t.Error(err.Error())
+	}
+
+	if len(followerList) != 2 {
+		t.Errorf("expected get 2 follower, but got %d", len(followerList))
+	}
+}

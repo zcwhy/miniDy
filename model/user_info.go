@@ -48,3 +48,17 @@ func (s *UserInfoDAO) QueryUserInfoById(id int64, info *UserInfo) error {
 func (s *UserInfoDAO) IsUserExistById(userId int64) bool {
 	return DB.Find(&UserInfo{}, userId).RowsAffected == 1
 }
+
+func (s *UserInfoDAO) QueryFollowListById(id int64, followList *[]*UserInfo) error {
+	if followList == nil {
+		errors.New("QueryFollowListById followList 空指针")
+	}
+	return DB.Raw("SELECT u.* FROM user_relations r, user_infos u WHERE r.user_info_id = ? AND r.follow_id = u.id", id).Scan(followList).Error
+}
+
+func (s *UserInfoDAO) QueryFollowerListById(id int64, followerList *[]*UserInfo) error {
+	if followerList == nil {
+		errors.New("QueryFollowerListById followList 空指针")
+	}
+	return DB.Raw("SELECT u.* FROM user_relations r, user_infos u WHERE r.follow_id = ? AND r.user_info_id = u.id", id).Scan(followerList).Error
+}
