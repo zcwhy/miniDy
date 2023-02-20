@@ -91,3 +91,17 @@ func TestUserInfoDAO_QueryFollowerListById(t *testing.T) {
 		t.Errorf("expected get 2 follower, but got %d", len(followerList))
 	}
 }
+
+func TestUserInfoDAO_QueryFriendListById(t *testing.T) {
+	userInfoDao := NewUserInfoDao()
+
+	var friendList []*UserInfo
+
+	if err := userInfoDao.QueryFollowListById(7, &friendList); err != nil {
+		t.Error(err.Error())
+	}
+
+	if len(friendList) != 2 {
+		t.Errorf("expected get 2 follower, but got %d", len(friendList))
+	}
+}

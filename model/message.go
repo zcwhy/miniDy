@@ -46,3 +46,12 @@ func (m *MessageDAO) QueryMessages(userId, toUserId int64, lastTime time.Time, m
 	return DB.Where("from_user_id = ? AND to_user_id = ? AND create_time  > ?", userId, toUserId, lastTime).
 		Limit(constant.MAX_MESSAGE_NUMBER).Find(messageList).Error
 }
+
+func (m *MessageDAO) QueryLatestMessageById(userId, toUserId int64, message *Message) error {
+	if message == nil {
+		return errors.New("QueryLatestMessageById message 空指针")
+	}
+	return DB.Where("from_user_id = ? AND to_user_id = ?", userId, toUserId).
+		Or("to_user_id = ? AND from_user_id = ?", userId, toUserId).
+		Order("create_time desc").Find(message).Error
+}

@@ -62,3 +62,12 @@ func (s *UserInfoDAO) QueryFollowerListById(id int64, followerList *[]*UserInfo)
 	}
 	return DB.Raw("SELECT u.* FROM user_relations r, user_infos u WHERE r.follow_id = ? AND r.user_info_id = u.id", id).Scan(followerList).Error
 }
+
+func (s *UserInfoDAO) QueryFriendListById(id int64, followerList *[]*UserInfo) error {
+	if followerList == nil {
+		errors.New("QueryFollowerListById followList 空指针")
+	}
+	return DB.Raw("SELECT u.* FROM user_relations r1, user_relations r2, user_infos u  WHERE r1.user_info_id = r2.follow_id "+
+		"AND  r1.follow_id = r2.user_info_id "+
+		"AND r1.user_info_id = ? AND r1.follow_id = u.id", id).Scan(followerList).Error
+}
