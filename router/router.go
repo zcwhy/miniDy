@@ -22,7 +22,7 @@ func InitRouter() *gin.Engine {
 
 	//basic apis
 	baseGroup.GET("/feed", video.GetVideoFeedHandler)
-	baseGroup.GET("/user", middleware.JWTMiddleWare, user_info.UserInfoHandler)            // 用户信息接口完成(xqy)
+	baseGroup.GET("/user/", middleware.JWTMiddleWare, user_info.UserInfoHandler)           // 用户信息接口完成(xqy)
 	baseGroup.GET("/publish/list/", middleware.JWTMiddleWare, video.QueryVideoListHandler) // 发布列表接口完成(xqy)
 	baseGroup.POST("/user/login/", user_login.UserLoginHandler)
 	baseGroup.POST("/user/register/", user_login.UserRegisterHandler)

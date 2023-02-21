@@ -51,7 +51,10 @@ func (p *ProxyPostFavorHandler) parser() error {
 		return errors.New("解析视频ID出错")
 	}
 
-	rawUserId := p.DefaultQuery("user_id", "0")
+	rawUserId, ok := p.Get("user_id")
+	if !ok {
+		return errors.New("解析用户ID出错")
+	}
 	p.userId, err = util.StringToInt64(fmt.Sprint(rawUserId))
 	if err != nil {
 		return errors.New("解析用户ID出错")

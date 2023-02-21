@@ -62,7 +62,11 @@ func (p *ProxyPostCommentHandler) parser() error {
 		return errors.New("视频不存在")
 	}
 
-	p.userId, err = util.StringToInt64(p.DefaultQuery("user_id", "0"))
+	rawUserId, ok := p.Get("user_id")
+	if !ok {
+		return errors.New("解析用户ID出错")
+	}
+	p.userId, err = util.StringToInt64(fmt.Sprint(rawUserId))
 	if err != nil {
 		return errors.New("解析用户ID出错")
 	}
