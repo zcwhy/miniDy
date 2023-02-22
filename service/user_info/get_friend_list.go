@@ -7,9 +7,9 @@ import (
 )
 
 type FriendUser struct {
-	User    *model.UserInfo
+	User    *model.UserInfo `json:",inline"`
 	Message string
-	MsgType int64
+	MsgType int64 `json:"msg_type"`
 }
 
 type UserFriendList struct {

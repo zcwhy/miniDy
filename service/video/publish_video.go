@@ -67,29 +67,54 @@ func (p *PublishVideoService) publishVideo() error {
 	file := p.request.Video
 	userId := p.request.UserId
 
-	//执行dao层，查询用户发布的视频数量用来构造存储时的文件名
+	//执行dao层，查询用户发布的视频数量用来构造存储时的文件名， 并查询当前用户是否已经发布过此标题的视频
 	videoDao := model.NewVideoDao()
-	videoCount, err := videoDao.CountUserVideoById(userId)
+	isTitleExist, err := videoDao.IsVideoTitleExistById(userId, p.request.Title)
 
 	if err != nil {
 		return err
 	}
 
+	if isTitleExist == true {
+		return errors.New("当前发布视频标题重复")
+	}
+
+	var videoCount int64
+	err = videoDao.CountUserVideoById(userId, &videoCount)
+
+	if err != nil {
+		return err
+	}
+
+	//根据videoCount来生成存储的文件名
 	suffix := filepath.Ext(p.request.Video.Filename)
-	saveName := fmt.Sprintf("%d-%d%s", userId, videoCount, suffix)
+	saveVideoName := fmt.Sprintf("%d-%d%s", userId, videoCount, suffix)
 	if err != nil {
 		return err
 	}
 
 	//本地磁盘存储视频
-	savePath := filepath.Join("static", saveName)
-	if err := p.request.Context.SaveUploadedFile(file, savePath); err != nil {
+	saveFilePath := filepath.Join("static", saveVideoName)
+	if err := p.request.Context.SaveUploadedFile(file, saveFilePath); err != nil {
+		return err
+	}
+
+	//截取视频的一帧作为封面，本地磁盘存储封面
+	saveCoverName := saveVideoName + "_cover"
+	if err := util.GetCoverFromVideo(saveVideoName, saveCoverName); err != nil {
 		return err
 	}
 
 	//数据库存储视频的元信息（meta data）
-	videoUrl := util.GetFileURL(saveName)
-	if err := videoDao.CreateVideo(userId, videoUrl, p.request.Title); err != nil {
+	videoUrl := util.GetVideoURL(saveVideoName)
+	coverUrl := util.GetCoverURL(saveCoverName)
+	if err := videoDao.CreateVideo(userId, videoUrl, coverUrl, p.request.Title); err != nil {
+		return err
+	}
+
+	//更新user的work_count视频数量的信息
+	userInfoDao := model.NewUserInfoDao()
+	if err := userInfoDao.AddUserWorkCount(userId); err != nil {
 		return err
 	}
 

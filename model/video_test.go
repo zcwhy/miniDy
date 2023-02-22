@@ -35,3 +35,12 @@ func TestVideoDao_IsUserFavorVideoExist(t *testing.T) {
 		t.Error("favor not exist but got true")
 	}
 }
+
+func TestVideoDAO_IsVideoTitleExistById(t *testing.T) {
+	videoDao := NewVideoDao()
+	exist, _ := videoDao.IsVideoTitleExistById(9, "tt1")
+
+	if exist == false {
+		t.Error("expect title tt1 exist but goe false")
+	}
+}

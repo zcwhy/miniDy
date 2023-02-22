@@ -59,7 +59,7 @@ func (p *ProxyQueryFavorListHandler) parser() error {
 
 func (p *ProxyQueryFavorListHandler) retOk(Res *[]*model.Video) {
 	p.JSON(http.StatusOK, QueryFavorListResponse{
-		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS, StatusMsg: "获取列表成功"},
+		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS, StatusMsg: constant.SUCCESS_MESSAGE},
 		List:       &video.List{Video: *Res},
 	})
 }

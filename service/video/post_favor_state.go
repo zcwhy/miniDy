@@ -42,15 +42,55 @@ func (p *PostFavorFlow) Do() error {
 }
 
 func (p *PostFavorFlow) UpFavor() error {
-	if err := model.NewVideoDao().UpFavorByVideoId(p.userId, p.videoId); err != nil {
+	videoDao := model.NewVideoDao()
+	userInfoDao := model.NewUserInfoDao()
+
+	if err := videoDao.UpFavorByVideoId(p.userId, p.videoId); err != nil {
 		return err
 	}
+
+	//点赞时，自己的喜欢数量 + 1
+	if err := userInfoDao.AddUserFavoriteCount(p.userId); err != nil {
+		return err
+	}
+
+	//被点赞视频的作者的总获赞数量 + 1
+	user := &model.UserInfo{}
+
+	if err := videoDao.QueryAuthorByVideoId(p.videoId, user); err != nil {
+		return err
+	}
+	fmt.Println(p.videoId)
+
+	if err := userInfoDao.AddUserTotalFavorite(user.Id); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (p *PostFavorFlow) DownFavor() error {
-	if err := model.NewVideoDao().DownFavorByVideoId(p.userId, p.videoId); err != nil {
+	videoDao := model.NewVideoDao()
+	userInfoDao := model.NewUserInfoDao()
+	if err := videoDao.DownFavorByVideoId(p.userId, p.videoId); err != nil {
 		return err
 	}
+
+	//取消点赞时，自己的喜欢数量 - 1
+	if err := userInfoDao.SubUserFavoriteCount(p.userId); err != nil {
+		return err
+	}
+
+	//被取消点赞视频的作者的总获赞数量 - 1
+	user := &model.UserInfo{}
+
+	if err := videoDao.QueryAuthorByVideoId(p.videoId, user); err != nil {
+		return err
+	}
+
+	if err := userInfoDao.SubUserTotalFavorite(user.Id); err != nil {
+		return err
+	}
+
 	return nil
 }

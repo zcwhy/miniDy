@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
-	"log"
 	"miniDy/constant"
 	"sync"
 	"time"
@@ -45,15 +44,21 @@ func NewVideoDao() *VideoDAO {
 	return VideoDao
 }
 
-func (*VideoDAO) CountUserVideoById(userId int64) (int64, error) {
-	result := DB.Model(&Video{}).Where("user_info_id=?", userId)
-	return result.RowsAffected, result.Error
+func (*VideoDAO) CountUserVideoById(userId int64, videoCount *int64) error {
+	result := DB.Model(&Video{}).Where("user_info_id = ?", userId).Count(videoCount)
+	return result.Error
 }
 
-func (*VideoDAO) CreateVideo(userId int64, playUrl string, title string) error {
+func (*VideoDAO) IsVideoTitleExistById(userId int64, title string) (bool, error) {
+	result := DB.Where("user_info_id = ? AND title = ?", userId, title).Find(&Video{})
+	return result.RowsAffected == 1, result.Error
+}
+
+func (*VideoDAO) CreateVideo(userId int64, playUrl, coverUrl string, title string) error {
 	return DB.Create(&Video{
 		UserInfoId: userId,
 		PlayUrl:    playUrl,
+		CoverUrl:   coverUrl,
 		Title:      title,
 	}).Error
 }
@@ -89,13 +94,7 @@ func (v *VideoDAO) IsUserFavorVideoExist(userId int64, videoId int64) bool {
 
 func (v *VideoDAO) IsVideoExistById(videoId int64) bool {
 	newVideo := Video{}
-	if err := DB.First(&newVideo, videoId); err != nil {
-		log.Println(err)
-	}
-	if newVideo.Id == 0 {
-		return false
-	}
-	return true
+	return DB.Find(&newVideo, videoId).RowsAffected == 1
 }
 
 func (v *VideoDAO) UpFavorByVideoId(userId, videoId int64) error {
@@ -104,7 +103,7 @@ func (v *VideoDAO) UpFavorByVideoId(userId, videoId int64) error {
 		var err error
 
 		err = tx.Model(&Video{}).Where("id = ?", videoId).
-			Update("favorite_count", gorm.Expr("comment_count + ?", 1)).Error
+			Update("favorite_count", gorm.Expr("favorite_count + ?", 1)).Error
 		if err != nil {
 			return err
 		}
@@ -122,7 +121,7 @@ func (v *VideoDAO) DownFavorByVideoId(userId, videoId int64) error {
 	return DB.Transaction(func(tx *gorm.DB) error {
 		var err error
 		err = tx.Model(&Video{}).Where("id = ?", videoId).
-			Update("favorite_count", gorm.Expr("comment_count + ?", -1)).Error
+			Update("favorite_count", gorm.Expr("favorite_count - ?", 1)).Error
 		if err != nil {
 			return err
 		}
@@ -182,4 +181,11 @@ func (v *VideoDAO) QueryAuthorByVideoId(videoId int64, author *UserInfo) error {
 		}
 		return nil
 	})
+}
+
+func (v *VideoDAO) QueryVideoCommentsById(videoId int64, commentList *[]*Comment) error {
+	if commentList == nil {
+		return errors.New("QueryVideoCommentsById commentList 空指针")
+	}
+	return DB.Find(commentList, videoId).Error
 }

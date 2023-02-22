@@ -13,7 +13,7 @@ import (
 
 type QueryCommentListResponse struct {
 	response.CommonResp
-	Response *[]*model.Comment
+	CommentList *[]*model.Comment `json:"comment_list"`
 }
 
 type ProxyQueryCommentListHandler struct {
@@ -45,7 +45,6 @@ func (p *ProxyQueryCommentListHandler) Do() {
 }
 
 func (p *ProxyQueryCommentListHandler) parser() error {
-	//
 	var err error
 	p.videoId, err = util.StringToInt64(p.DefaultQuery("video_id", "0"))
 	if err != nil {
@@ -59,14 +58,14 @@ func (p *ProxyQueryCommentListHandler) parser() error {
 
 func (p *ProxyQueryCommentListHandler) retError(err error) {
 	p.JSON(http.StatusOK, QueryCommentListResponse{
-		CommonResp: response.CommonResp{StatusCode: constant.FAILURE, StatusMsg: err.Error()},
-		Response:   nil,
+		CommonResp:  response.CommonResp{StatusCode: constant.FAILURE, StatusMsg: err.Error()},
+		CommentList: nil,
 	})
 }
 
 func (p *ProxyQueryCommentListHandler) retOK(commentList *comment.CommentList) {
 	p.JSON(http.StatusOK, QueryCommentListResponse{
-		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS},
-		Response:   &commentList.Comments,
+		CommonResp:  response.CommonResp{StatusCode: constant.SUCCESS},
+		CommentList: &commentList.Comments,
 	})
 }

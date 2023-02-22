@@ -105,3 +105,22 @@ func TestUserInfoDAO_QueryFriendListById(t *testing.T) {
 		t.Errorf("expected get 2 follower, but got %d", len(friendList))
 	}
 }
+
+func TestUserInfoDAO_AddUserWorkCount(t *testing.T) {
+	userInfoDao := NewUserInfoDao()
+
+	var user = new(UserInfo)
+	_ = userInfoDao.QueryUserInfoById(8, user)
+	wc_Before := user.WorkCount
+
+	err := userInfoDao.AddUserWorkCount(8)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	_ = userInfoDao.QueryUserInfoById(8, user)
+
+	if user.WorkCount != wc_Before+1 {
+		t.Errorf("Before add work count = %d, after add expect %d, but got %d", wc_Before, wc_Before+1, user.WorkCount)
+	}
+}

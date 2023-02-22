@@ -17,10 +17,12 @@ type GetVideoFeedResponse struct {
 }
 
 func GetVideoFeedHandler(c *gin.Context) {
+	var userId int64
 	rawLatestTime := c.Query("latest_time")
 	token := c.Query("token")
 
 	latestTime := time.Now().Unix()
+	//如果传过来的时间戳为空的话， 设置时间戳为当前时间
 	if rawLatestTime != "" {
 		var err error
 		latestTime, err = strconv.ParseInt(rawLatestTime, 10, 64)
@@ -36,7 +38,7 @@ func GetVideoFeedHandler(c *gin.Context) {
 	}
 
 	if token != "" {
-		valid := middleware.TokenVerify(token)
+		rawId, valid := middleware.TokenVerify(token)
 
 		if !valid {
 			c.JSON(http.StatusOK, GetVideoFeedResponse{
@@ -47,10 +49,13 @@ func GetVideoFeedHandler(c *gin.Context) {
 			})
 			return
 		}
+
+		//如果token合法，设置userId
+		userId = rawId
 	}
 
 	//前端传来的时间戳以毫秒为单位， go只能用以秒为单位的时间戳
-	resp, err := video.GetVideoFeed(latestTime / 1000)
+	resp, err := video.GetVideoFeed(latestTime/1000, userId)
 
 	if err != nil {
 		c.JSON(http.StatusOK, GetVideoFeedResponse{

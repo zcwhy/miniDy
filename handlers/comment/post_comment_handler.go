@@ -52,7 +52,6 @@ func (p *ProxyPostCommentHandler) Do() {
 }
 
 func (p *ProxyPostCommentHandler) parser() error {
-	//
 	var err error = nil
 	p.videoId, err = util.StringToInt64(p.DefaultQuery("video_id", "0"))
 	if err != nil {
@@ -62,7 +61,7 @@ func (p *ProxyPostCommentHandler) parser() error {
 		return errors.New("视频不存在")
 	}
 
-	p.userId, err = util.StringToInt64(p.DefaultQuery("user_id", "0"))
+	p.userId = p.GetInt64("user_id")
 	if err != nil {
 		return errors.New("解析用户ID出错")
 	}
@@ -97,4 +96,5 @@ func (p *ProxyPostCommentHandler) retOK(comment *comment.Response) {
 		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS},
 		Response:   comment,
 	})
+	fmt.Println("11111111111111111111111")
 }

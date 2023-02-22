@@ -7,16 +7,22 @@ import (
 )
 
 type UserInfo struct {
-	Id            int64       `json:"id" gorm:"id,omitempty"`
-	Name          string      `json:"name" gorm:"name,omitempty"`
-	FollowCount   int64       `json:"follow_count" gorm:"follow_count,omitempty"`
-	FollowerCount int64       `json:"follower_count" gorm:"follower_count,omitempty"`
-	IsFollow      bool        `json:"is_follow" gorm:"is_follow,omitempty"`
-	User          *UserLogin  `json:"-"`                                     //用户与账号密码之间的一对一
-	Videos        []*Video    `json:"-"`                                     //用户与投稿视频的一对多
-	Follows       []*UserInfo `json:"-" gorm:"many2many:user_relations;"`    //用户之间的多对多
-	FavorVideos   []*Video    `json:"-" gorm:"many2many:user_favor_videos;"` //用户与点赞视频之间的多对多
-	Comments      []*Comment  `json:"-"`                                     //用户与评论的一对多
+	Id              int64       `json:"id" gorm:"id,omitempty"`                             // 用户id
+	Name            string      `json:"name" gorm:"name,omitempty"`                         // 用户名称
+	FollowCount     int64       `json:"follow_count" gorm:"follow_count,omitempty"`         // 关注总数
+	FollowerCount   int64       `json:"follower_count" gorm:"follower_count,omitempty"`     // 粉丝总数
+	IsFollow        bool        `json:"is_follow" gorm:"is_follow,omitempty"`               // true-已关注，false-未关注
+	Avatar          string      `json:"avatar" gorm:"avatar,omitempty"`                     //用户头像
+	BackgroundImage string      `json:"background_image" gorm:"background_image,omitempty"` //用户个人页顶部大图
+	Signature       string      `json:"signature" gorm:"signature,omitempty"`               //个人简介
+	TotalFavorited  int64       `json:"total_favorited" gorm:"total_favorited,omitempty"`   //获赞数量
+	WorkCount       int64       `json:"work_count" gorm:"work_count,omitempty"`             //作品数量
+	FavoriteCount   int64       `json:"favorite_count" gorm:"favorite_count,omitempty"`     //点赞数量
+	User            *UserLogin  `json:"-"`                                                  //用户与账号密码之间的一对一
+	Videos          []*Video    `json:"-"`                                                  //用户与投稿视频的一对多
+	Follows         []*UserInfo `json:"-" gorm:"many2many:user_relations;"`                 //用户之间的多对多
+	FavorVideos     []*Video    `json:"-" gorm:"many2many:user_favor_videos;"`              //用户与点赞视频之间的多对多
+	Comments        []*Comment  `json:"-"`                                                  //用户与评论的一对多
 }
 
 type UserInfoDAO struct {
@@ -25,11 +31,6 @@ type UserInfoDAO struct {
 var (
 	UserInfoDao  *UserInfoDAO
 	UserInfoOnce sync.Once
-)
-
-var (
-	ErrIvdPtr        = errors.New("空指针错误")
-	ErrEmptyUserList = errors.New("用户列表为空")
 )
 
 func NewUserInfoDao() *UserInfoDAO {
@@ -48,9 +49,9 @@ func (s *UserInfoDAO) UserRegister(info *UserInfo) error {
 
 func (s *UserInfoDAO) QueryUserInfoById(userId int64, userInfo *UserInfo) error {
 	if userInfo == nil {
-		return ErrIvdPtr
+		return errors.New("空指针错误")
 	}
-	DB.Where("id=?", userId).Select([]string{"id", "name", "follow_count", "follower_count", "is_follow"}).First(userInfo)
+	DB.Where("id=?", userId).First(userInfo)
 	if userInfo.Id == 0 {
 		return errors.New("用户不存在")
 	}
@@ -87,14 +88,41 @@ func (s *UserInfoDAO) CancelUserFollow(userId int64, followId int64) error {
 	})
 }
 
+// AddUserWorkCount 在用户发布作品时，用户的作品数量 + 1
+func (s *UserInfoDAO) AddUserWorkCount(userId int64) error {
+	return DB.Model(&UserInfo{}).Where("id = ?", userId).
+		Update("work_count", gorm.Expr(" work_count + ?", 1)).Error
+}
+
+// AddUserTotalFavorite 在用户发布作品被点赞时，用户的获赞总量 + 1
+func (s *UserInfoDAO) AddUserTotalFavorite(userId int64) error {
+	return DB.Model(&UserInfo{}).Where("id = ?", userId).
+		Update("total_favorited", gorm.Expr(" total_favorited + ?", 1)).Error
+}
+
+// SubUserTotalFavorite 在用户发布的视频被取消点赞时，用户的获赞总量 - 1
+func (s *UserInfoDAO) SubUserTotalFavorite(userId int64) error {
+	return DB.Model(&UserInfo{}).Where("id = ?", userId).
+		Update("total_favorited", gorm.Expr(" total_favorited - ?", 1)).Error
+}
+
+// AddUserFavoriteCount 在用户点赞视频时，用户喜欢的作品的数量 + 1
+func (s *UserInfoDAO) AddUserFavoriteCount(userId int64) error {
+	return DB.Model(&UserInfo{}).Where("id = ?", userId).
+		Update("favorite_count", gorm.Expr(" favorite_count + ?", 1)).Error
+}
+
+// SubUserFavoriteCount 在用户取消点赞视频时，用户喜欢的作品的数量 - 1
+func (s *UserInfoDAO) SubUserFavoriteCount(userId int64) error {
+	return DB.Model(&UserInfo{}).Where("id = ?", userId).
+		Update("favorite_count", gorm.Expr(" favorite_count - ?", 1)).Error
+}
+
 func (s *UserInfoDAO) IsFollowExist(userId int64, followId int64) bool {
 	var userinfo UserInfo
 	exist := DB.Raw("SELECT r.* from user_relations r WHERE r.user_info_id = ? AND r.follow_id = ?", userId, followId).Scan(userinfo).RowsAffected
 	//log.Printf("########**%#v", exist)
-	if exist == 1 {
-		return true
-	}
-	return false
+	return exist == 1
 }
 
 func (s *UserInfoDAO) IsUserExistById(userId int64) bool {

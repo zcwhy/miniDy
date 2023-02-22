@@ -51,9 +51,9 @@ func (p *ProxyPostFavorHandler) parser() error {
 		return errors.New("解析视频ID出错")
 	}
 
-	rawUserId := p.DefaultQuery("user_id", "0")
-	p.userId, err = util.StringToInt64(fmt.Sprint(rawUserId))
-	if err != nil {
+	rawUserId, exist := p.Get("user_id")
+	p.userId = rawUserId.(int64)
+	if exist == false {
 		return errors.New("解析用户ID出错")
 	}
 
@@ -66,7 +66,7 @@ func (p *ProxyPostFavorHandler) parser() error {
 
 func (p *ProxyPostFavorHandler) retOk() {
 	p.JSON(http.StatusOK, PostFavorResponse{
-		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS, StatusMsg: "(❤ ω ❤)"},
+		CommonResp: response.CommonResp{StatusCode: constant.SUCCESS, StatusMsg: constant.SUCCESS_MESSAGE},
 	})
 }
 

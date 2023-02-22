@@ -22,5 +22,10 @@ func GetFollowerList(userId int64) (*UserFollowerList, error) {
 		return nil, err
 	}
 
+	for _, follower := range followerList {
+		isFollow := userInfoDao.IsFollowExist(userId, follower.Id)
+		follower.IsFollow = isFollow == true
+	}
+
 	return &UserFollowerList{FollowList: followerList}, nil
 }

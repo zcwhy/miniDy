@@ -91,13 +91,13 @@ func JWTMiddleWare(c *gin.Context) {
 	c.Next()
 }
 
-//TokenVerify 校验token是否正确， 是否过期
-func TokenVerify(token string) bool {
+// TokenVerify 校验token是否正确， 是否过期
+func TokenVerify(token string) (int64, bool) {
 	c, ok := ParseToken(token)
 
 	if time.Now().Unix() > c.ExpiresAt.Time.Unix() {
 		ok = false
 	}
 
-	return ok
+	return c.UserId, ok
 }
