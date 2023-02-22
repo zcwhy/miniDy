@@ -4,15 +4,14 @@ import (
 	"errors"
 	"miniDy/constant"
 	"sync"
-	"time"
 )
 
 type Message struct {
 	Id         int64
-	ToUserId   int64 `json:"to_user_id"`
-	FromUserId int64 `json:"from_user_id"`
-	Content    string
-	CreateTime time.Time `json:"create_time"`
+	ToUserId   int64  `json:"to_user_id"`
+	FromUserId int64  `json:"from_user_id"`
+	Content    string `json:"content"`
+	CreateTime int64  `json:"create_time"`
 }
 
 type MessageDAO struct {
@@ -39,11 +38,11 @@ func (m *MessageDAO) CreateMessage(message *Message) error {
 	return DB.Create(message).Error
 }
 
-func (m *MessageDAO) QueryMessages(userId, toUserId int64, lastTime time.Time, messageList *[]*Message) error {
+func (m *MessageDAO) QueryMessages(fromUserId, toUserId int64, lastTime int64, messageList *[]*Message) error {
 	if messageList == nil {
 		return errors.New("QueryMessages messageList 空指针")
 	}
-	return DB.Where("from_user_id = ? AND to_user_id = ? AND create_time  > ?", userId, toUserId, lastTime).
+	return DB.Where("from_user_id = ? AND to_user_id = ? AND create_time  > ?", fromUserId, toUserId, lastTime).
 		Limit(constant.MAX_MESSAGE_NUMBER).Find(messageList).Error
 }
 

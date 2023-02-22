@@ -56,7 +56,7 @@ func (p *PostMessageActionService) updateData() error {
 		FromUserId: p.fromUserId,
 		ToUserId:   p.toUserId,
 		Content:    p.content,
-		CreateTime: time.Now(),
+		CreateTime: time.Now().Unix(),
 	}
 
 	return messageDao.CreateMessage(message)

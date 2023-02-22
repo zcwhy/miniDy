@@ -7,9 +7,9 @@ import (
 )
 
 type FriendUser struct {
-	User    *model.UserInfo `json:",inline"`
-	Message string
-	MsgType int64 `json:"msg_type"`
+	*model.UserInfo
+	Message string `json:"message"`
+	MsgType int64  `json:"msg_type"`
 }
 
 type UserFriendList struct {
@@ -42,7 +42,7 @@ func GetFriendList(userId int64) (*UserFriendList, error) {
 			return nil, err
 		}
 
-		friendUser := &FriendUser{User: friend, Message: message.Content}
+		friendUser := &FriendUser{UserInfo: friend, Message: message.Content}
 		if message.FromUserId != userId {
 			friendUser.MsgType = constant.TO_MESSAGE
 		}
