@@ -17,7 +17,7 @@ func GetMessageRecords(userId, toUserId int64, lastTime int64) ([]*model.Message
 	service := &GetMessageRecordsService{
 		fromUserId: userId,
 		toUserId:   toUserId,
-		lastTime:   lastTime / 1000,
+		lastTime:   lastTime,
 	}
 	err := service.Do()
 	return service.messageList, err
