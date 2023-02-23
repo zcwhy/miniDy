@@ -142,7 +142,7 @@ func (v *VideoDAO) QueryFavorListByUserId(userId int64) (*[]*Video, error) {
 		if !NewUserInfoDao().IsUserExistById(userId) {
 			return errors.New("用户不存在")
 		}
-		if err = tx.Table("user_favor_videos").Select("video_id").Scan(&fvList).Error; err != nil {
+		if err = tx.Table("user_favor_videos").Where("user_info_id = ?", userId).Select("video_id").Scan(&fvList).Error; err != nil {
 			return err
 		}
 		if len(fvList) == 0 {

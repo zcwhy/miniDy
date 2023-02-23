@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-var ip = "192.168.0.196:8080"
+var ip = "192.168.138.31:8080"
 
 func GetVideoURL(videoName string) string {
 	videoURL := fmt.Sprintf("http://%s/static/%s", ip, videoName)
